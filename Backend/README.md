@@ -6,16 +6,16 @@
 
 - **Backend Framework**: FastAPI (Python 3.10+)
 - **Database**: Supabase (PostgreSQL + pgvector)
-- **ML/AI**: SentenceTransformer (all-MiniLM-L6-v2)
-- **Deployment**: AWS Lambda (via Mangum + Serverless Framework)
-- **Compute**: Serverless (AWS Lambda)
+- **ML/AI**: SentenceTransformer via HuggingFace API (external, no local model)
+- **Deployment**: Simple Python server (Railway, Render, Vercel, or any Python host)
 
 ## ✨ Features
 
 ### 🧠 **The Embedding Engine**
-- Generates 384-dimensional semantic embeddings for volunteer bios and task descriptions
-- Uses `sentence-transformers/all-MiniLM-L6-v2` model
-- Singleton pattern for efficient memory usage in Lambda
+- Generates 384-dimensional semantic embeddings via HuggingFace API
+- Uses `sentence-transformers/all-MiniLM-L6-v2` model (hosted by HuggingFace)
+- Zero local dependencies - lightweight and fast!
+- **Free tier friendly**: No model loading, no large downloads
 
 ### 🎯 **The Routing Engine**
 - Semantic matching of volunteers to tasks using cosine similarity
@@ -40,20 +40,18 @@
 Backend/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # FastAPI app + Mangum handler
+│   ├── main.py              # FastAPI application
 │   ├── config.py            # Settings & environment variables
 │   ├── database.py          # Supabase client
-│   ├── embeddings.py        # Embedding engine (singleton)
+│   ├── embeddings.py        # HuggingFace API wrapper
 │   ├── models.py            # Pydantic schemas
 │   └── routes/
 │       ├── __init__.py
 │       ├── volunteers.py    # Volunteer CRUD + health
 │       ├── tasks.py         # Task CRUD + matching
 │       └── activities.py    # Activity logging + scoring
-├── requirements.txt
-├── serverless.yml           # AWS Lambda deployment config
+├── requirements.txt         # Minimal dependencies
 ├── .env.example
-├── .gitignore
 └── README.md
 ```
 
@@ -65,8 +63,7 @@ Backend/
 
 - Python 3.10+
 - Supabase account (free tier works!)
-- AWS account (for Lambda deployment)
-- Node.js & npm (for Serverless Framework)
+- HuggingFace account (free API, optional token for higher rate limits)
 
 ### 2. **Clone & Setup**
 
@@ -93,10 +90,13 @@ pip install -r requirements.txt
 # Copy the example env file
 cp .env.example .env
 
-# Edit .env with your Supabase credentials
+# Edit .env with your credentials:
 # SUPABASE_URL=https://your-project.supabase.co
 # SUPABASE_KEY=your-anon-key
+# HUGGINGFACE_API_KEY=hf_xxxxx (optional, get from huggingface.co/settings/tokens)
 ```
+
+**Note**: HuggingFace API works WITHOUT a key (with rate limits). For production, get a free API token from https://huggingface.co/settings/tokens
 
 ### 4. **Run Locally**
 
@@ -109,6 +109,35 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 **API Documentation**: http://localhost:8000/docs 📖
+
+---
+
+## 🌐 Deployment Options
+
+This is a standard FastAPI app - deploy anywhere that supports Python:
+
+### **Option 1: Railway** (Recommended - Free Tier)
+1. Create account at railway.app
+2. Connect GitHub repo
+3. Add environment variables (SUPABASE_URL, SUPABASE_KEY, HUGGINGFACE_API_KEY)
+4. Deploy! Railway auto-detects Python
+
+### **Option 2: Render**
+1. Create account at render.com
+2. New Web Service → Connect repo
+3. Build: `pip install -r requirements.txt`
+4. Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables
+
+### **Option 3: Vercel** (with Python runtime)
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run `vercel` in project directory
+3. Add environment variables in dashboard
+
+### **Option 4: Traditional VPS**
+- Run with gunicorn: `gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker`
+- Use nginx as reverse proxy
+- Deploy with systemd service
 
 ---
 

@@ -7,26 +7,21 @@ Backend/
 ├── 📄 BackendPRD                       # Original requirements
 ├── 📄 README.md                        # Comprehensive documentation
 ├── 📄 API_QUICK_REFERENCE.md          # Quick API reference
+├── 📄 FRONTEND_INTEGRATION_SPEC.md    # Frontend build guide
+├── 📄 ARCHITECTURE.md                 # This file
+├── 📄 SUPABASE_SETUP_CHECKLIST.md     # Database setup guide
 │
 ├── ⚙️ Configuration Files
 │   ├── .env.example                    # Environment template
 │   ├── .gitignore                      # Git ignore rules
-│   ├── requirements.txt                # Python dependencies
-│   ├── package.json                    # NPM/Serverless config
-│   ├── serverless.yml                  # AWS Lambda deployment
-│   ├── Dockerfile                      # Docker containerization
-│   └── docker-compose.yml              # Docker Compose setup
-│
-├── 🧪 Utility Scripts
-│   ├── setup.py                        # Setup verification script
-│   └── test_api.py                     # API testing script
+│   └── requirements.txt                # Python dependencies (minimal!)
 │
 └── 📦 Application Code (app/)
     ├── __init__.py                     # Package initialization
-    ├── main.py                         # 🚀 FastAPI app + Mangum handler
+    ├── main.py                         # 🚀 FastAPI application
     ├── config.py                       # Settings & environment
     ├── database.py                     # Supabase client
-    ├── embeddings.py                   # 🧠 Embedding engine (singleton)
+    ├── embeddings.py                   # 🧠 HuggingFace API wrapper
     ├── models.py                       # Pydantic schemas
     │
     └── routes/
@@ -42,14 +37,17 @@ Backend/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      AWS API Gateway                        │
-│                    (or Local Uvicorn)                       │
+│                      Frontend (React)                       │
+│                  (Built from FRONTEND_SPEC)                 │
+│                                                             │
+│  • Supabase Auth for login/signup                          │
+│  • API calls to FastAPI backend (no auth headers)          │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   AWS Lambda Function                       │
-│              (Mangum wraps FastAPI app)                     │
+│              FastAPI Backend (Python Server)                │
+│        (Railway / Render / Vercel / VPS)                    │
 │   ┌─────────────────────────────────────────────────────┐   │
 │   │              FastAPI Application                    │   │
 │   │                                                     │   │
@@ -62,40 +60,51 @@ Backend/
 │   │                           ▼                        │   │
 │   │              ┌─────────────────────────┐           │   │
 │   │              │   Embedding Engine      │           │   │
-│   │              │  (SentenceTransformer)  │           │   │
-│   │              │     🧠 Singleton        │           │   │
-│   │              └─────────────────────────┘           │   │
-│   │                           │                        │   │
-│   │                           ▼                        │   │
+│   │              │   (HuggingFace API)     │           │   │
+│   │              │  🧠 External Service    │           │   │
+│   │              └──────────┬──────────────┘           │   │
+│   │                         │                          │   │
+│   │                         ▼                          │   │
 │   │              ┌─────────────────────────┐           │   │
 │   │              │   Supabase Client       │           │   │
 │   │              │   (Database Layer)      │           │   │
 │   │              └─────────────────────────┘           │   │
 │   └─────────────────────────────────────────────────────┘   │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Supabase Database                         │
-│                  (PostgreSQL + pgvector)                    │
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌─────────────────┐   │
-│  │  volunteers  │  │    tasks     │  │ activity_logs   │   │
-│  │              │  │              │  │                 │   │
-│  │ • embedding  │  │ • task_vector│  │ • volunteer_id  │   │
-│  │   (384-dim)  │  │   (384-dim)  │  │ • points        │   │
-│  └──────────────┘  └──────────────┘  └─────────────────┘   │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │         match_volunteers() RPC Function              │   │
-│  │         (Cosine Similarity Search)                   │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │      volunteer_retention_status VIEW                 │   │
-│  │      (Health = Score - Days×2)                       │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
+└────────────┬───────────────────────┬────────────────────────┘
+             │                       │
+             ▼                       ▼
+┌──────────────────────┐  ┌─────────────────────────────────┐
+│  HuggingFace API     │  │   Supabase Database            │
+│  (Inference API)     │  │   (PostgreSQL + pgvector)       │
+│                      │  │                                 │
+│ • Free tier          │  │  ┌──────────────┐               │
+│ • No local model     │  │  │  volunteers  │               │
+│ • 384-dim vectors    │  │  │ • embedding  │               │
+│ • all-MiniLM-L6-v2   │  │  │   (384-dim)  │               │
+└──────────────────────┘  │  └──────────────┘               │
+                         │                                 │
+                         │  ┌──────────────┐               │
+                         │  │    tasks     │               │
+                         │  │ • task_vector│               │
+                         │  │   (384-dim)  │               │
+                         │  └──────────────┘               │
+                         │                                 │
+                         │  ┌─────────────────┐            │
+                         │  │ activity_logs   │            │
+                         │  │ • volunteer_id  │            │
+                         │  │ • points        │            │
+                         │  └─────────────────┘            │
+                         │                                 │
+                         │  ┌──────────────────────────┐   │
+                         │  │ match_volunteers() RPC   │   │
+                         │  │ (Cosine Similarity)      │   │
+                         │  └──────────────────────────┘   │
+                         │                                 │
+                         │  ┌──────────────────────────┐   │
+                         │  │ volunteer_retention_     │   │
+                         │  │ status VIEW              │   │
+                         │  └──────────────────────────┘   │
+                         └─────────────────────────────────┘
 ```
 
 ---
@@ -105,14 +114,21 @@ Backend/
 ### 1️⃣ **The Embedding Engine** 🧠
 **Module**: `app/embeddings.py`
 
-- Loads `sentence-transformers/all-MiniLM-L6-v2` once at startup
+- Calls HuggingFace Inference API for embeddings
+- Model: `sentence-transformers/all-MiniLM-L6-v2`
 - Generates 384-dimensional vectors
-- Singleton pattern for Lambda efficiency
-- Caches model in `/tmp/model_cache`
+- **No local model** - lightweight and fast
+- Free tier friendly with optional API key for higher limits
 
 **Used by**:
 - `POST /volunteers` - Encode volunteer bio
 - `POST /tasks` - Encode task description
+
+**Benefits**:
+✅ No 80MB+ model download  
+✅ No GPU/CPU intensive processing  
+✅ Cold starts are instant  
+✅ Works perfectly for low-traffic applications
 
 ---
 
