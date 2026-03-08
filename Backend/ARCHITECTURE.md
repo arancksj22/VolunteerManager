@@ -1,4 +1,4 @@
-# 🏗️ Vanguard Backend Architecture
+# 🏗️ VolunteerManager Backend Architecture
 
 ## 📁 Complete File Structure
 

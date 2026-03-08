@@ -1,6 +1,6 @@
 # 🚀 Simple Deployment Guide
 
-Deploy your Vanguard backend in under 5 minutes with **Railway** (recommended) or **Render**.
+Deploy your VolunteerManager backend in under 5 minutes with **Railway** (recommended) or **Render**.
 
 ## ✨ Why This Is Simple
 
@@ -82,7 +82,7 @@ startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
    - Select the repo
 
 3. **Configure Service**
-   - **Name**: vanguard-backend
+   - **Name**: volunteer-manager-backend
    - **Region**: Choose closest to you
    - **Branch**: main
    - **Root Directory**: (leave blank or specify if Backend is in subfolder)
@@ -102,10 +102,10 @@ startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 5. **Create Web Service**
    - Click "Create Web Service"
    - Render will build and deploy
-   - You get a URL like: `https://vanguard-backend.onrender.com`
+   - You get a URL like: `https://volunteer-manager-backend.onrender.com`
 
 6. **Test Your API**
-   - Visit: `https://vanguard-backend.onrender.com/docs`
+   - Visit: `https://volunteer-manager-backend.onrender.com/docs`
 
 ### Free Tier Notes
 
@@ -195,12 +195,12 @@ If you prefer traditional hosting:
 
 5. **Setup Systemd Service** (keeps it running)
    ```bash
-   sudo nano /etc/systemd/system/vanguard.service
+   sudo nano /etc/systemd/system/volunteer-manager.service
    ```
 
    ```ini
    [Unit]
-   Description=Vanguard Backend
+   Description=VolunteerManager Backend
    After=network.target
 
    [Service]
@@ -215,8 +215,8 @@ If you prefer traditional hosting:
    ```
 
    ```bash
-   sudo systemctl enable vanguard
-   sudo systemctl start vanguard
+   sudo systemctl enable volunteer-manager
+   sudo systemctl start volunteer-manager
    ```
 
 6. **Setup Nginx** (reverse proxy)

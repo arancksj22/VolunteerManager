@@ -1,5 +1,5 @@
 """
-Vanguard Backend - FastAPI Application
+VolunteerManager Backend - FastAPI Application
 Simple deployment ready for any Python server (Railway, Render, etc.)
 """
 from fastapi import FastAPI, Request, status
@@ -20,7 +20,7 @@ from app.routes import volunteers, tasks, activities
 # ============================================================================
 
 app = FastAPI(
-    title="Vanguard Volunteer Management API",
+    title="VolunteerManager API",
     description="AI-native volunteer management platform with semantic matching and engagement tracking",
     version="1.0.0",
     docs_url="/docs",
@@ -47,7 +47,7 @@ async def startup_event():
     Initialize resources at application startup.
     """
     print("=" * 60)
-    print("🚀 VANGUARD BACKEND STARTING UP")
+    print("🚀 VOLUNTEERMANAGER BACKEND STARTING UP")
     print("=" * 60)
     
     try:
@@ -73,7 +73,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on application shutdown."""
-    print("👋 Vanguard Backend shutting down...")
+    print("👋 VolunteerManager Backend shutting down...")
 
 
 # ============================================================================
@@ -162,7 +162,7 @@ async def system_info():
     settings = get_settings()
     
     return {
-        "application": "Vanguard Volunteer Management API",
+        "application": "VolunteerManager API",
         "version": "1.0.0",
         "environment": settings.environment,
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
@@ -183,14 +183,30 @@ app.include_router(activities.router)
 
 
 # ============================================================================
-# AWS LAMBDA HANDLER (Mangum)
+# AWS LAMBDA HANDLER (for serverless deployment)
 # ============================================================================
 
-# This is the handler that AWS Lambda will invoke
-handler = Mangum(app, lifespan="auto")
-LOCAL DEVELOPMENT & PRODUCTION
-    print("🚀 Starting Vanguard Backend in LOCAL MODE")
+try:
+    from mangum import Mangum
+    # Mangum adapter converts ASGI (FastAPI) to AWS Lambda handler
+    handler = Mangum(app, lifespan="off")
+except ImportError:
+    # Mangum not installed - Lambda deployment not available
+    # (Only needed if deploying to AWS Lambda)
+    pass
+
+
+# ============================================================================
+# LOCAL DEVELOPMENT
+# ============================================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    print("=" * 60)
+    print("🚀 Starting VolunteerManager Backend in LOCAL MODE")
     print("📖 API Docs: http://localhost:8000/docs")
+    print("=" * 60)
     
     uvicorn.run(
         "app.main:app",

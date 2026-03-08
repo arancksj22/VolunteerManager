@@ -1,4 +1,4 @@
-# 🚀 Vanguard Backend - Volunteer Management API
+# 🚀 VolunteerManager Backend API
 
 **AI-native volunteer management platform** with semantic matching, engagement tracking, and retention intelligence.
 
@@ -7,7 +7,7 @@
 - **Backend Framework**: FastAPI (Python 3.10+)
 - **Database**: Supabase (PostgreSQL + pgvector)
 - **ML/AI**: SentenceTransformer via HuggingFace API (external, no local model)
-- **Deployment**: Simple Python server (Railway, Render, Vercel, or any Python host)
+- **Deployment**: AWS Lambda (free tier) OR simple Python hosting (Railway, Render, Vercel)
 
 ## ✨ Features
 
@@ -114,9 +114,35 @@ uvicorn app.main:app --reload --port 8000
 
 ## 🌐 Deployment Options
 
-This is a standard FastAPI app - deploy anywhere that supports Python:
+Choose your deployment strategy based on your needs:
 
-### **Option 1: Railway** (Recommended - Free Tier)
+### **Option 1: AWS Lambda** (Recommended - 100% FREE)
+
+**Best for**: Variable traffic, zero cost, automatic scaling
+
+- ✅ **FREE TIER**: 1 million requests/month forever
+- ✅ **1-3 second cold starts** (20-30x faster than Render free tier)
+- ✅ **Auto-scales** from 0 to thousands of requests
+- ✅ **No idle costs** - pay only when running
+
+**Deploy in 3 commands:**
+```bash
+npm install -g serverless
+serverless deploy
+```
+
+**📖 Full guide**: See [LAMBDA_DEPLOYMENT_GUIDE.md](LAMBDA_DEPLOYMENT_GUIDE.md)
+
+---
+
+### **Option 2: Railway** (Simple, Always-On)
+
+**Best for**: Consistent traffic, prefer simplicity
+
+- 💰 **Cost**: $0-5/month
+- ✅ **No cold starts**
+- ✅ **Easiest deployment**
+
 1. Create account at railway.app
 2. Connect GitHub repo
 3. Add environment variables (SUPABASE_URL, SUPABASE_KEY, HUGGINGFACE_API_KEY)

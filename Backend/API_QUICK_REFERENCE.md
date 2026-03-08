@@ -1,4 +1,4 @@
-# 🎯 Vanguard API Quick Reference
+# 🎯 VolunteerManager API Quick Reference
 
 ## Base URLs
 

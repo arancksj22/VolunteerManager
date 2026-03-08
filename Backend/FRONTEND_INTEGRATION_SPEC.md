@@ -1,122 +1,405 @@
-# 🎨 Vanguard Frontend - Complete Build Specification
+# 🎨 VolunteerManager Frontend - Complete Build Specification
 
 ## 🚀 DESIGN PROMPT - BUILD THE ENTIRE WEBSITE
 
-You are building **Vanguard**, an AI-native volunteer management platform that solves volunteer churn with intelligent matching and health monitoring.
+You are building **VolunteerManager**, an AI-native volunteer management platform for **animal advocacy organizations** that solves volunteer churn with intelligent matching and health monitoring.
+
+### 🐾 **Context: Animal Advocacy Coordinators**
+
+**The User**: Volunteer coordinators at animal advocacy organizations (animal rights groups, sanctuaries, rescue organizations, vegan outreach) managing anywhere from 20 to 2,000 volunteers who need to keep people matched to advocacy campaigns, active in the movement, and retained long-term.
+
+**The Problem**: Animal advocacy has high volunteer turnover. Coordinators struggle to:
+- Match volunteers to the right campaigns (protests, leafleting, vegan outreach, sanctuary tours)
+- Identify at-risk volunteers before they burn out
+- Track engagement across multiple advocacy activities
+- Keep volunteers motivated and connected to the cause
+
+### 🎭 **TWO-PORTAL SYSTEM (CRITICAL)**
+
+Build **TWO separate user interfaces**:
+
+#### 1️⃣ **Coordinator Portal** (Admin Dashboard)
+**Users**: Advocacy coordinators, campaign managers, org admins
+**Purpose**: Manage volunteers, create campaigns, monitor retention, match volunteers to advocacy work
+**Auth**: Supabase Auth with role checking
+**Routes**: `/coordinator/*`
+
+#### 2️⃣ **Volunteer Portal** (Public-Facing)
+**Users**: Animal advocacy volunteers (general public)
+**Purpose**: Sign up, view profile, see available campaigns, track own activity
+**Auth**: Optional Supabase Auth OR anonymous signup
+**Routes**: `/volunteer/*` or `/` (public home)
+
+**BOTH portals share the same backend API but have completely different UIs and feature sets.**
+
+### 🛠️ **REQUIRED TECH STACK**
+
+**THIS IS NON-NEGOTIABLE:**
+
+- **Framework**: Next.js 14+ (App Router with TypeScript)
+- **UI Components**: **shadcn/ui** (PRIMARY COMPONENT LIBRARY)
+- **Styling**: Tailwind CSS (comes with shadcn/ui)
+- **State Management**: TanStack Query (React Query) for server state
+- **Forms**: React Hook Form + Zod validation
+- **Auth**: Supabase Auth (pre-built UI components)
+- **Icons**: lucide-react (comes with shadcn/ui)
+- **Charts**: Recharts (for dashboard metrics)
+- **Date Utilities**: date-fns
+
+**Why shadcn/ui?**
+- ✅ Copy-paste components directly into your codebase (full control)
+- ✅ Built on Radix UI primitives (accessibility built-in)
+- ✅ Fully customizable with Tailwind
+- ✅ TypeScript-first design
+- ✅ Beautiful, modern aesthetics out of the box
+- ✅ No bloat - only install components you use
+
+### 📦 **shadcn/ui Components to Install**
+
+Install these shadcn/ui components (use `npx shadcn-ui@latest add <component>`):
+
+**Core Navigation & Layout:**
+- `sidebar` - Main app navigation
+- `breadcrumb` - Page navigation
+- `separator` - Visual dividers
+
+**Data Display:**
+- `table` - Volunteer/task lists
+- `card` - Metric cards, task cards
+- `badge` - Status indicators (Healthy/Warning/At-Risk, task status)
+- `avatar` - User profile images
+- `skeleton` - Loading states
+
+**Forms & Inputs:**
+- `form` - Form wrapper with React Hook Form integration
+- `input` - Text inputs
+- `textarea` - Bio/description fields
+- `select` - Dropdowns (activity type, status)
+- `label` - Form labels
+- `button` - All actions
+- `command` - Search command palette
+
+**Feedback & Overlays:**
+- `dialog` - Modal dialogs (Add Volunteer, Log Activity)
+- `alert-dialog` - Confirmation dialogs (delete actions)
+- `toast` - Success/error notifications
+- `alert` - Inline alerts
+- `progress` - Health score bars, similarity bars
+
+**Charts & Data:**
+- `chart` - Install the recharts integration
+- `tabs` - Tab navigation sections
+
+**Advanced:**
+- `dropdown-menu` - User menu, action menus
+- `popover` - Extra info popovers
+- `tooltip` - Helpful hints
+- `pagination` - List pagination
+- `slider` - Match threshold slider
 
 ### 🎯 Core Features to Build
 
-**1. Dashboard (Landing Page)**
-- **Hero Section**: Bold tagline "Stop Losing Volunteers" with mission statement
-- **Key Metrics Cards**: 
-  - Total Volunteers (with trend)
-  - At-Risk Volunteers (red alert badge)
-  - Active Tasks (open/filled/completed breakdown)
-  - Average Engagement Score
-- **Health Status Overview**: Visual health distribution (Healthy/Warning/At-Risk) with pie chart
-- **Recent Activity Feed**: Last 10 activities with timestamps and point awards
-- **Quick Actions**: "Add Volunteer", "Create Task", "View Health Report" buttons
+---
 
-**2. Volunteer Management**
+## 🔐 **COORDINATOR PORTAL** (Admin Dashboard)
+
+**Route Prefix**: `/coordinator/*`  
+**Auth Required**: Yes (Supabase Auth with coordinator role)
+
+### 1. Coordinator Dashboard (`/coordinator/dashboard`)
+- **Hero Section**: "Stop Losing Animal Advocates" with movement impact stats
+- **Key Metrics Cards**: 
+  - Total Volunteers (with trend arrow)
+  - At-Risk Advocates (red alert badge)
+  - Active Campaigns (open/filled/completed breakdown)
+  - Average Engagement Score
+  - Total Advocacy Hours This Month
+- **Health Status Overview**: Pie chart showing Healthy/Warning/At-Risk distribution
+- **Recent Activity Feed**: Last 10 advocacy activities with timestamps and points
+- **Quick Actions**: "Add Volunteer", "Create Campaign", "View At-Risk Report"
+
+### 2. Volunteer Management (`/coordinator/volunteers`)
 - **Volunteer List Page**:
   - Searchable/filterable table (search by name/email, filter by health status)
-  - Columns: Name, Email, Skills (tags), Engagement Score (with color coding), Health Status (badge), Last Active
-  - Actions: Edit, Delete, View Details
+  - Columns: Name, Email, Advocacy Interests (tags), Engagement Score (color-coded), Health Status (badge), Last Active
+  - Actions: Edit, Delete, View Details, Email
   - Pagination (20 per page)
-  - "Add New Volunteer" button (top right)
+  - **Top filters**: "All", "Healthy", "Warning", "At-Risk"
   
-- **Add/Edit Volunteer Form**:
-  - Fields: Full Name, Email, Bio (textarea), Skills (dynamic tag input)
-  - Real-time validation (email format, required fields)
-  - Save button → Shows success toast → Redirects to list
+- **Add Volunteer Manually** (coordinators can add volunteers directly):
+  - Fields: Full Name, Email, Bio, Advocacy Interests (e.g., "protests", "vegan outreach", "social media", "sanctuary work")
+  - Real-time validation
+  - Save → Success toast → Redirects to list
   
 - **Volunteer Detail Page**:
-  - Profile section (name, email, bio, skills)
+  - Profile section (name, email, bio, advocacy interests)
   - Engagement score gauge with visual indicator
-  - Health status with detailed explanation
-  - Activity history timeline
-  - "Log Activity" button
+  - Health status with explanation ("Last active 15 days ago, losing momentum")
+  - Activity history timeline (participated in X protest, completed Y leafleting, etc.)
+  - **Actions**: "Log Activity", "Edit Profile", "Send Email", "Delete"
 
-**3. Task Management & Matching**
-- **Task List Page**:
-  - Card grid layout showing all tasks
-  - Each card: Title, Description (truncated), Status badge, Required Skills tags
+### 3. Campaign Management (`/coordinator/campaigns`)
+- **Campaign List Page**:
+  - Card grid layout showing all advocacy campaigns
+  - Each card: Title, Description (truncated), Status badge, Required Skills/Interests tags
+  - Examples: "Downtown Vegan Outreach", "Sanctuary Open House", "Social Media Blitz", "Protest Planning"
   - Filter by status (open/filled/completed)
-  - "Create Task" button
+  - "Create Campaign" button
   
-- **Create Task Form**:
-  - Fields: Title, Description, Required Skills (tag input), Status dropdown
-  - Save → Redirect to task matching page
+- **Create Campaign Form**:
+  - Fields: Title, Description, Required Interests (tag input like "outreach, public speaking, people skills"), Status dropdown
+  - Save → Redirect to campaign matching page
   
-- **Task Matching Page** (THE STAR FEATURE ⭐):
-  - Task details at top
-  - "Find Matches" button with threshold slider (0-100%) and count selector (1-50)
+- **Campaign Matching Page** (⭐ THE STAR FEATURE):
+  - Campaign details at top
+  - "Find Best Matches" button with:
+    - Threshold slider (0-100%) - "How closely should volunteers match?"
+    - Count selector (1-50) - "How many volunteers to show?"
   - **Results display**: 
-    - Ranked list of volunteers with similarity percentage
-    - Each result shows: Name, Bio, Similarity Score (visual bar), Skills overlap
-    - "Contact" button (opens email) for each volunteer
-  - Visual: Use gradient bars for similarity (green = high match, yellow = medium)
+    - Ranked list of volunteers with AI similarity percentage
+    - Each result shows: Name, Bio preview, Similarity Score (visual progress bar), Interest overlap
+    - "Email Volunteer" button for each result
+  - Visual feedback: Green bars (>80% match), Yellow (60-80%), Orange (<60%)
 
-**4. Health Monitoring**
-- **Health Report Page**:
-  - Three columns: Healthy (green), Warning (yellow), At-Risk (red)
-  - Each column shows list of volunteers with current_health score
-  - Click volunteer → See their detail page
-  - Filter controls at top
-  - **Action prompts**: "Send check-in email to At-Risk volunteers"
+### 4. Health Monitoring (`/coordinator/health`)
+- **Retention Health Report Page**:
+  - **Three columns layout**:
+    - **Healthy** (green): Active, engaged advocates
+    - **Warning** (yellow): Engagement declining
+    - **At-Risk** (red): Haven't participated recently, likely to churn
+  - Each column shows list with current_health score and days since last activity
+  - Click volunteer → Navigate to their detail page
+  - **Bulk Actions**: "Send check-in email to all At-Risk volunteers"
 
-**5. Activity Logging**
-- **Activity Log Page** (Admin view):
-  - Table: Volunteer Name, Activity Type, Points, Timestamp
+### 5. Activity Logging (`/coordinator/activities`)
+- **Activity Log Page**:
+  - Table: Volunteer Name, Activity Type, Points Awarded, Date/Time
   - Filter by: Activity type, Volunteer, Date range
-  - Total points awarded (summary stat)
+  - Total engagement points awarded (summary stat)
+  - Export CSV button
   
 - **Quick Log Activity Modal**:
   - Accessible from volunteer detail page or dashboard
-  - Select volunteer (dropdown with search)
-  - Select activity type (signup/task_completion/check_in/custom)
-  - Points auto-filled based on type (editable)
-  - Submit → Updates engagement score immediately
+  - Fields:
+    - Select volunteer (dropdown with search)
+    - Activity type: "protest", "leafleting", "sanctuary_tour", "social_media_post", "training_session", "custom"
+    - Points (auto-filled based on type, editable)
+  - Submit → Updates engagement score → Shows success toast
+
+---
+
+## 🐾 **VOLUNTEER PORTAL** (Public-Facing)
+
+**Route Prefix**: `/volunteer/*` or just `/` (public home)  
+**Auth Required**: Optional (can browse anonymously, auth required for profile)
+
+### 1. Public Home Page (`/`)
+- **Hero Section**: 
+  - Bold headline: "Join the Animal Advocacy Movement"
+  - Subheading: "Connect with campaigns, make an impact, save lives"
+  - Large "Sign Up as Volunteer" button
+  - Images of advocacy work (protests, vegan outreach, sanctuary animals)
+  
+- **How It Works** section (3 steps):
+  1. Sign up and tell us about your interests
+  2. Get matched to campaigns that fit your skills
+  3. Track your impact and grow as an advocate
+  
+- **Current Campaigns** showcase:
+  - Card grid showing 3-6 featured campaigns
+  - Each card: Title, Description, "Learn More" button
+  - Shows volunteer count and urgency level
+
+### 2. Volunteer Signup (`/volunteer/signup`)
+- **Simple signup form**:
+  - Full Name
+  - Email
+  - Bio (textarea): "Tell us why you want to help animals and what you're interested in"
+  - Advocacy Interests (tag input or checkboxes):
+    - Protests & Demonstrations
+    - Vegan Outreach & Leafleting
+    - Social Media Advocacy
+    - Sanctuary Volunteering
+    - Event Planning
+    - Photography & Videography
+    - Community Organizing
+    - Public Speaking
+    - Research & Writing
+  - "Join the Movement" button
+  
+- **After signup**:
+  - Success message
+  - Email sent with profile link
+  - Optional: Create Supabase Auth account for login
+  - Redirects to volunteer dashboard
+Two Auth Scenarios**:
+
+#### 1️⃣ **Coordinator Auth** (Required)
+- Coordinators MUST log in to access admin portal
+- Use Supabase Auth with role-based access
+- Protected routes: `/coordinator/*`
+
+#### 2️⃣ **Volunteer Auth** (Optional)
+- Volunteers can sign up WITHOUT creating auth account initially
+- Form submission just creates volunteer record in backend
+- Later, they can optionally create Supabase auth account to access dashboard
+- Protected routes: `/volunteer/dashboard`, `/volunteer/profile`
+
+**Setup**:
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+```
+
+**Coordinator Login**:
+```typescript
+// /coordinator/login page
+import { Auth } from '@supabase/auth-ui-react'
+import { ThemeSupa } from '@supabase/auth-ui-shared'
+
+<Auth 
+  supabaseClient={supabase} 
+  appearance={{ theme: ThemeSupa }}
+  providers={['google']}
+  redirectTo="/coordinator/dashboard"
+/>
+
+// Protect coordinator routes
+const { data: { session } } = await supabase.auth.getSession()
+if (!session) redirect('/coordinator/login')
+
+// Optional: Check for coordinator role in Supabase user metadata
+const isCoordinator = session.user.user_metadata?.role === 'coordinator'
+if (!isCoordinator) redirect('/')
+```
+
+**Volunteer Signup (No Auth Required)**:
+```typescript
+// /volunteer/signup page
+// Just submit form to backend API - NO Supabase auth needed
+async function handleSignup(formData) {
+  const response = await fetch('http://localhost:8000/volunteers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData)
+  })
+  
+  if (response.ok) {
+    // Success! Show message, redirect to thank you page
+    toast.success('Welcome to the movement!')
+    router.push('/volunteer/welcome')
+  }
+}
+```
+
+**Volunteer Optional Login** (for dashboard access):
+```typescript
+// /volunteer/login page (optional, if volunteer wants to access dashboard)
+<Auth 
+  supabaseClient={supabase} 
+  appearance={{ theme: ThemeSupa }}
+  redirectTo="/volunteer/dashboard"
+/>
+```
+### 5. Browse Campaigns (`/volunteer/campaigns`)
+- **Public campaign listing**:
+  - All active campaigns
+  - Filter by interest tags
+  - Search by keyword
+  - Each shows: Title, Description, When/Where (if applicable), Apply button
+  
+- **Campaign Detail Page**:
+  - Full description
+  - Required skills/interests
+  - Coordinator contact info
+  - "Express Interest" button (sends notification to coordinator)
+
+---
+
+### 🎨 Route Structure Summary
+
+```
+COORDINATOR PORTAL (Admin):
+/coordinator/login          → Auth gate
+/coordinator/dashboard      → Main admin dashboard
+/coordinator/volunteers     → Manage all volunteers
+/coordinator/volunteers/:id → Volunteer detail
+/coordinator/campaigns      → Manage campaigns
+/coordinator/campaigns/new  → Create campaign
+/coordinator/campaigns/:id  → Campaign detail & matching
+/coordinator/health         → Retention report
+/coordinator/activities     → Activity logs
+
+VOLUNTEER PORTAL (Public):
+/                           → Public home page
+/volunteer/signup           → Signup form
+/volunteer/login            → Login (optional, uses Supabase)
+/volunteer/dashboard        → Personal dashboard (auth required)
+/volunteer/profile          → View/edit own profile
+/volunteer/campaigns        → Browse available campaigns
+/volunteer/campaigns/:id    → Campaign detail
+```
 
 ### 🎨 Design System
 
-**Color Palette**:
-- Primary: Deep Blue (#1e40af) for headers, buttons
-- Success/Healthy: Green (#10b981)
-- Warning: Amber (#f59e0b)
-- Danger/At-Risk: Red (#ef4444)
-- Background: Light gray (#f9fafb)
-- Cards: White with subtle shadow
+**Color Palette** (configure in `tailwind.config.ts`):
+- Primary: Blue `hsl(221, 83%, 53%)` for buttons, headers
+- Success/Healthy: Green `hsl(142, 76%, 36%)`
+- Warning: Amber `hsl(38, 92%, 50%)`
+- Danger/At-Risk: Red `hsl(0, 84%, 60%)`
+- Background: `hsl(0, 0%, 98%)`
+- Card: `hsl(0, 0%, 100%)`
+- Border: `hsl(214, 32%, 91%)`
 
-**Typography**:
-- Headings: Inter or Poppins (bold, 24-32px)
-- Body: Inter or Open Sans (regular, 14-16px)
-- Monospace for IDs/emails: Fira Code
+(shadcn/ui uses HSL color system - customize in your theme)
 
-**Components**:
-- **Buttons**: Rounded (6px), shadow on hover, primary/secondary variants
-- **Cards**: White bg, border-radius 8px, shadow-sm
-- **Badges**: Pill-shaped, small text, colored by status
-- **Forms**: Labeled inputs, validation feedback, focus states
-- **Tables**: Striped rows, hover effect, sortable headers
+**Typography** (shadcn/ui defaults):
+- Headings: Inter font (via next/font)
+- Body: Inter font
+- Monospace: Geist Mono (for code/IDs)
 
-**Layout**:
-- Sidebar navigation (Dashboard, Volunteers, Tasks, Health, Activities)
-- Top bar with logo, search, admin menu
-- Content area with padding and max-width (1200px)
-- Mobile responsive (hamburger menu, stacked cards)
+**Components** (all from shadcn/ui):
+- **Buttons**: Use shadcn/ui `<Button>` with variants (default, destructive, outline, ghost)
+- **Cards**: Use shadcn/ui `<Card>` with `<CardHeader>`, `<CardContent>`, `<CardFooter>`
+- **Badges**: Use shadcn/ui `<Badge>` with variant props
+- **Forms**: Use shadcn/ui `<Form>` components with React Hook Form integration
+- **Tables**: Use shadcn/ui `<Table>` with built-in styling
+
+**Layout** (Next.js App Router):
+- Sidebar navigation using shadcn/ui `<Sidebar>` component
+- Top bar with app title and user menu (use `<DropdownMenu>`)
+- Content area with max-width and padding
+- Mobile responsive (shadcn/ui components are responsive by default)
 
 ### 🛠️ Technical Stack Recommendations
 
-- **Framework**: React with TypeScript + Vite (or Next.js for SSR)
-- **UI Library**: Tailwind CSS + shadcn/ui components (or Material-UI)
-- **State Management**: React Query (TanStack Query) for API calls
-- **Forms**: React Hook Form + Zod validation
-- **Charts**: Recharts or Chart.js
-- **Icons**: Lucide React or Heroicons
-- **Routing**: React Router (or Next.js routing)
+- **Framework**: Next.js 14+ with App Router + TypeScript (REQUIRED)
+- **UI Library**: **shadcn/ui components** (PRIMARY - use for ALL UI components)
+- **Styling**: Tailwind CSS (bundled with shadcn/ui)
+- **State Management**: TanStack Query (React Query) v5 for API calls
+- **Forms**: React Hook Form + Zod validation (integrated with shadcn/ui Form component)
+- **Charts**: Recharts (use shadcn/ui Chart components)
+- **Icons**: lucide-react (comes with shadcn/ui)
+- **Auth**: Supabase Auth with pre-built UI
+- **Routing**: Next.js App Router
 - **Date Formatting**: date-fns
-- **Authentication**: Supabase Auth (use Supabase client library)
+
+**Setup Commands:**
+```bash
+# Create Next.js app
+npx create-next-app@latest volunteer-manager --typescript --tailwind --app
+
+# Initialize shadcn/ui
+npx shadcn-ui@latest init
+
+# Install components as you need them
+npx shadcn-ui@latest add button card form input table badge
+# ...install all components from the list above
+```
 
 ### 🔐 Authentication via Supabase
 
@@ -143,22 +426,25 @@ const supabase = createClient(
 // Protect routes
 const { data: { session } } = await supabase.auth.getSession()
 if (!session) redirect('/login')
+, Heart } from "lucide-react"
 
-// Supabase Auth UI (one line!)
-import { Auth } from '@supabase/auth-ui-react'
-
-<Auth 
-  supabaseClient={supabase} 
-  appearance={{ theme: ThemeSupa }}
-  providers={['google']} // Optional: Social login
-/>
-```
-
-**That's it!** Supabase automatically manages tokens, sessions, password resets, email verification, etc.
-
-### 📡 API Integration
-
-**Base URL**: `http://localhost:8000` (local) or use deployed backend URL
+export function MetricCard({ title, value, trend, status }: MetricCardProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Heart className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <div className="flex items-center pt-1">
+          <Badge variant={status === 'up' ? 'default' : 'destructive'}>
+            <TrendingUp className="mr-1 h-3 w-3" />
+            {trend}
+          </Badge>
+          <span className="text-xs text-muted-foreground ml-2">
+            advocates active
+          </spantp://localhost:8000` (local) or use deployed backend URL
 
 **NO auth headers needed** for backend API (Supabase auth is separate layer)
 
@@ -174,7 +460,733 @@ async function getVolunteers() {
 
 ---
 
+## 💎 shadcn/ui Component Examples
+
+**Here are concrete examples showing how to use shadcn/ui components for each feature:**
+
+### Example 1: Dashboard Metric Card
+
+```tsx
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Users, TrendingUp } from "lucide-react"
+
+export function MetricCard({ title, value, trend, status }: MetricCardProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Users className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <div className="flex items-center pt-1">
+          <Badge variant={status === 'up' ? 'default' : 'destructive'}>
+            <TrendingUp className="mr-1 h-3 w-3" />
+            {trend}
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+### Example 2: Volunteer List with Table (Coordinator View)
+
+```tsx
+'use client'
+
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { useQuery } from "@tanstack/react-query"
+import { Mail } from "lucide-react"
+
+export function VolunteerTable() {
+  const { data: volunteers, isLoading } = useQuery({
+    queryKey: ['volunteers'],
+    queryFn: () => fetch('http://localhost:8000/volunteers').then(r => r.json())
+  })
+
+  if (isLoading) return <TableSkeleton />
+
+  return (
+    <Table>
+      <TableCaption>Animal advocacy volunteers across all campaigns.</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Advocacy Interests</TableHead>
+          <TableHead>Engagement</TableHead>
+          <TableHead>Health Status</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {volunteers?.map((volunteer: Volunteer) => (
+          <TableRow key={volunteer.id}>
+            <TableCell className="font-medium">{volunteer.full_name}</TableCell>
+            <TableCell className="text-muted-foreground">{volunteer.email}</TableCell>
+            <TableCell>
+              <div className="flex gap-1 flex-wrap">
+                {volunteer.skills.slice(0, 3).map(skill => (
+                  <Badge key={skill} variant="outline" className="text-xs">
+                    {skill}
+                  </Badge>
+                ))}
+                {volunteer.skills.length > 3 && (
+                  <Badge variant="outline">+{volunteer.skills.length - 3}</Badge>
+                )}
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-medium">{volunteer.engagement_score}</div>
+                <div className="text-xs text-muted-foreground">pts</div>
+              </div>
+            </TableCell>
+            <TableCell>
+              <Badge variant={getHealthVariant(volunteer.engagement_score)}>
+                {getHealthStatus(volunteer.engagement_score)}
+              </Badge>
+            </TableCell>
+            <TableCell className="text-right space-x-2">
+              <Button variant="ghost" size="sm">
+                <Mail className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm">Edit</Button>
+              <Button variant="ghost" size="sm" className="text-destructive">
+                Delete
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+```
+
+### Example 3: Volunteer Signup Form (Public Portal)
+
+```tsx
+'use client'
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useMutation } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+
+const advocacyInterests = [
+  { id: "protests", label: "Protests & Demonstrations" },
+  { id: "outreach", label: "Vegan Outreach & Leafleting" },
+  { id: "social_media", label: "Social Media Advocacy" },
+  { id: "sanctuary", label: "Sanctuary Volunteering" },
+  { id: "events", label: "Event Planning" },
+  { id: "media", label: "Photography & Videography" },
+  { id: "organizing", label: "Community Organizing" },
+  { id: "speaking", label: "Public Speaking" },
+]
+
+const signupSchema = z.object({
+  full_name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  bio: z.string().min(20, "Please tell us a bit more about yourself"),
+  interests: z.array(z.string()).min(1, "Select at least one area of interest"),
+})
+
+export function VolunteerSignupForm() {
+  const router = useRouter()
+  
+  const form = useForm<z.infer<typeof signupSchema>>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      interests: [],
+    }
+  })
+
+  const createVolunteer = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('http://localhost:8000/volunteers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: data.full_name,
+          email: data.email,
+          bio: data.bio,
+          skills: data.interests, // interests become skills in backend
+        })
+      })
+      if (!response.ok) throw new Error('Failed to sign up')
+      return response.json()
+    },
+    onSuccess: () => {
+      toast.success('Welcome to the animal advocacy movement! 🐾')
+      router.push('/volunteer/welcome')
+    },
+    onError: () => {
+      toast.error('Failed to sign up. Please try again.')
+    }
+  })
+
+  return (
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Join the Animal Advocacy Movement</CardTitle>
+        <CardDescription>
+          Sign up to get matched with campaigns, track your impact, and help save animals
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((data) => createVolunteer.mutate(data))} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="full_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Jane Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="jane@example.com" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    We'll use this to match you with campaigns
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>About You</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Tell us why you want to help animals and what experience or interests you have..."
+                      className="resize-none min-h-[120px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    This helps us match you with the perfect campaigns (min 20 characters)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="interests"
+              render={() => (
+                <FormItem>
+                  <div className="mb-4">
+                    <FormLabel className="text-base">Advocacy Interests</FormLabel>
+                    <FormDescription>
+                      Select all areas you're interested in or experienced with
+                    </FormDescription>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {advocacyInterests.map((interest) => (
+                      <FormField
+                        key={interest.id}
+                        control={form.control}
+                        name="interests"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={interest.id}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(interest.id)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, interest.id])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== interest.id
+                                          )
+                                        )
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {interest.label}
+                              </FormLabel>
+                            </FormItem>
+                          )
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <CardFooter className="px-0">
+              <Button type="submit" size="lg" className="w-full" disabled={createVolunteer.isPending}>
+                {createVolunteer.isPending ? 'Joining...' : 'Join the Movement 🐾'}
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+```tsx
+'use client'
+
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+
+const volunteerSchema = z.object({
+  full_name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  bio: z.string().optional(),
+  skills: z.string().optional(),
+})
+
+export function AddVolunteerDialog() {
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  
+  const form = useForm<z.infer<typeof volunteerSchema>>({
+    resolver: zodResolver(volunteerSchema),
+  })
+
+  const createVolunteer = useMutation({
+    mutationFn: async (data: VolunteerCreate) => {
+      const response = await fetch('http://localhost:8000/volunteers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          skills: data.skills?.split(',').map(s => s.trim()).filter(Boolean)
+        })
+      })
+      if (!response.ok) throw new Error('Failed to create volunteer')
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['volunteers'] })
+      toast.success('Volunteer created successfully!')
+      setOpen(false)
+      form.reset()
+    },
+    onError: () => {
+      toast.error('Failed to create volunteer')
+    }
+  })
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Add Volunteer</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[525px]">
+        <DialogHeader>
+          <DialogTitle>Add New Volunteer</DialogTitle>
+          <DialogDescription>
+            Create a new volunteer profile. Their bio will be used for AI matching.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((data) => createVolunteer.mutate(data))} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="full_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Jane Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="jane@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bio</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Tell us about their interests and experience..."
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Used for semantic matching with tasks
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="skills"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Skills (comma-separated)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="teaching, event planning, public speaking" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button type="submit" disabled={createVolunteer.isPending}>
+                {createVolunteer.isPending ? 'Creating...' : 'Create Volunteer'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+### Example 4: Add Volunteer Manually (Coordinator Portal)
+
+```tsx
+'use client'
+
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+
+const volunteerSchema = z.object({
+  full_name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  bio: z.string().optional(),
+  skills: z.string().optional(),
+})
+
+export function AddVolunteerDialog() {
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  
+  const form = useForm<z.infer<typeof volunteerSchema>>({
+    resolver: zodResolver(volunteerSchema),
+  })
+
+  const createVolunteer = useMutation({
+    mutationFn: async (data: VolunteerCreate) => {
+      const response = await fetch('http://localhost:8000/volunteers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          skills: data.skills?.split(',').map(s => s.trim()).filter(Boolean)
+        })
+      })
+      if (!response.ok) throw new Error('Failed to create volunteer')
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['volunteers'] })
+      toast.success('Volunteer added successfully!')
+      setOpen(false)
+      form.reset()
+    },
+    onError: () => {
+      toast.error('Failed to add volunteer')
+    }
+  })
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Add Volunteer Manually</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[525px]">
+        <DialogHeader>
+          <DialogTitle>Add Volunteer to System</DialogTitle>
+          <DialogDescription>
+            Manually add a volunteer to your animal advocacy team. Their bio will be used for AI campaign matching.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit((data) => createVolunteer.mutate(data))} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="full_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Jane Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="jane@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bio</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Passionate about animal rights, experienced in vegan outreach..."
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Used for semantic campaign matching
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="skills"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Advocacy Interests (comma-separated)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="protests, outreach, social media, organizing" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button type="submit" disabled={createVolunteer.isPending}>
+                {createVolunteer.isPending ? 'Adding...' : 'Add Volunteer'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+### Example 5: Health Status Badge
+
+```tsx
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+
+function getHealthStatus(health: number): { status: string, variant: 'default' | 'warning' | 'destructive' } {
+  if (health > 70) return { status: 'Healthy', variant: 'default' }
+  if (health >= 40) return { status: 'Warning', variant: 'warning' }
+  return { status: 'At-Risk', variant: 'destructive' }
+}
+
+export function HealthBadge({ health }: { health: number }) {
+  const { status, variant } = getHealthStatus(health)
+  
+  return (
+    <Badge 
+      variant={variant}
+      className={cn(
+        variant === 'default' && 'bg-green-500',
+        variant === 'warning' && 'bg-amber-500',
+        variant === 'destructive' && 'bg-red-500'
+      )}
+    >
+      {status} ({health})
+    </Badge>
+  )
+}
+```
+
+### Example 6: Campaign Match Results with Progress Bars
+
+```tsx
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Mail } from "lucide-react"
+
+export function MatchResults({ matches }: { matches: VolunteerMatch[] }) {
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-muted-foreground mb-4">
+        {matches.length} advocates matched to this campaign
+      </div>
+      {matches.map((match) => (
+        <Card key={match.id}>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle>{match.full_name}</CardTitle>
+                <CardDescription className="line-clamp-2">
+                  {match.bio}
+                </CardDescription>
+              </div>
+              <Badge variant="secondary" className="ml-2">
+                {Math.round(match.similarity * 100)}% match
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Match Strength</span>
+                <span className="font-medium">{Math.round(match.similarity * 100)}%</span>
+              </div>
+              <Progress value={match.similarity * 100} className="h-2" />
+            </div>
+            <Button variant="outline" size="sm" className="w-full">
+              <Mail className="mr-2 h-4 w-4" />
+              Email This Advocate
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+```
+
+**Use these patterns throughout your app!** Every UI component should use shadcn/ui components for consistency and rapid development.
+
+---
+
 ## 🌐 API Configuration
+
+**Important Terminology Note:**
+- The **backend API** uses "tasks" in endpoint URLs and response fields
+- The **frontend UI** should present these as "campaigns" to users
+- Example: `GET /tasks` → Display as "Campaigns" in UI
+- This is just presentation layer branding - the data structure is identical
+
+**Base URL**: `http://localhost:8000` (local) or deployed backend URL
 
 ---
 
@@ -365,7 +1377,7 @@ async function checkDatabaseHealth(): Promise<HealthResponse> {
 **Response**:
 ```json
 {
-  "application": "Vanguard Volunteer Management API",
+  "application": "VolunteerManager API",
   "version": "1.0.0",
   "environment": "development",
   "python_version": "3.10.0",
@@ -389,8 +1401,8 @@ async function checkDatabaseHealth(): Promise<HealthResponse> {
 {
   "full_name": "Jane Smith",
   "email": "jane@example.com",
-  "bio": "Passionate about education and community work",
-  "skills": ["teaching", "event planning", "public speaking"]
+  "bio": "Passionate about animal rights and vegan advocacy. Have experience with street outreach and social media campaigns.",
+  "skills": ["outreach", "social media", "public speaking", "organizing"]
 }
 ```
 
@@ -400,8 +1412,8 @@ async function checkDatabaseHealth(): Promise<HealthResponse> {
   "id": "123e4567-e89b-12d3-a456-426614174000",
   "full_name": "Jane Smith",
   "email": "jane@example.com",
-  "bio": "Passionate about education and community work",
-  "skills": ["teaching", "event planning", "public speaking"],
+  "bio": "Passionate about animal rights and vegan advocacy. Have experience with street outreach and social media campaigns.",
+  "skills": ["outreach", "social media", "public speaking", "organizing"],
   "engagement_score": 100,
   "last_active_at": "2026-03-08T10:30:00Z",
   "created_at": "2026-03-08T10:30:00Z"
@@ -642,9 +1654,9 @@ async function deleteVolunteer(id: string): Promise<MessageResponse> {
 **Request Body**: `TaskCreate`
 ```json
 {
-  "title": "Community Food Drive",
-  "description": "Organize and run weekend food distribution event",
-  "required_skills": ["organizing", "logistics", "leadership"],
+  "title": "Weekend Vegan Outreach Downtown",
+  "description": "Friendly vegan leafleting and conversations with the public at the farmers market. Great for beginners!",
+  "required_skills": ["outreach", "public speaking", "friendly"],
   "status": "open"
 }
 ```
@@ -1335,7 +2347,7 @@ console.log('Logged activity:', activity);
 
 ```typescript
 // api-client.ts
-export class VanguardAPI {
+export class VolunteerManagerAPI {
   constructor(private baseURL: string) {}
   
   // Volunteers
@@ -1465,7 +2477,7 @@ export class VanguardAPI {
 }
 
 // Usage
-export const api = new VanguardAPI('http://localhost:8000');
+export const api = new VolunteerManagerAPI('http://localhost:8000');
 ```
 
 ---
@@ -1505,7 +2517,44 @@ export const api = new VanguardAPI('http://localhost:8000');
 
 ---
 
-## 📞 Support
+## 📊 Quick Reference: Dual Portal Architecture
+
+### System Overview
+```
+VolunteerManager
+├── Coordinator Portal (/coordinator/*)
+│   ├── Authentication: REQUIRED (Supabase Auth)
+│   ├── Users: Animal advocacy coordinators
+│   ├── Purpose: Manage volunteers, create campaigns, match volunteers
+│   └── Key Pages: Dashboard, Volunteers List, Campaigns, Health Reports
+│
+└── Volunteer Portal (/volunteer/*)
+    ├── Authentication: OPTIONAL (signup works without auth)
+    ├── Users: Animal rights volunteers/activists
+    ├── Purpose: Public signup, browse campaigns, track participation
+    └── Key Pages: Home, Signup Form, Dashboard (if logged in), Profile
+```
+
+### Portal Comparison
+
+| Feature | Coordinator Portal | Volunteer Portal |
+|---------|-------------------|------------------|
+| **URL Pattern** | `/coordinator/*` | `/volunteer/*` |
+| **Auth Required** | ✅ Yes (Supabase Auth) | ⚠️ Optional (signup works without) |
+| **User Type** | Coordinators/admins | Volunteers/activists |
+| **Primary Actions** | Create campaigns, match volunteers, monitor health | Signup, browse campaigns, view profile |
+| **shadcn/ui Components** | DataTable, Dialog, Form, Badge, Progress | Card, Form, Checkbox, Button, Avatar |
+| **Deployment** | Protected behind auth middleware | Public-facing (no auth wall) |
+
+### Key Technical Decisions
+- **Backend uses "tasks"** ➔ **Frontend displays "campaigns"** (UI terminology only)
+- **Two separate route groups** in Next.js (not a single app with role switching)
+- **shadcn/ui is PRIMARY** component library (copy-paste into codebase, full control)
+- **Next.js 14+ App Router REQUIRED** (not Pages Router)
+- **TypeScript + Zod validation** on all forms
+- **TanStack Query v5** for API calls (replaces useEffect patterns)
+
+---
 
 **Backend API Base URL**: Configure based on environment
 **API Documentation**: `/docs` (Swagger) or `/redoc`

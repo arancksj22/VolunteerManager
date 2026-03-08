@@ -1,0 +1,75 @@
+service: volunteer-manager-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.10
+  region: us-east-1  # Change to your preferred region (us-east-1 has largest free tier)
+  stage: ${opt:stage, 'dev'}
+  
+  # FREE TIER OPTIMIZATIONS
+  memorySize: 512  # Free tier: 400,000 GB-seconds/month (512MB works perfectly)
+  timeout: 30      # Max 30 seconds per request
+  
+  # Environment variables (from your .env file)
+  environment:
+    SUPABASE_URL: ${env:SUPABASE_URL}
+    SUPABASE_KEY: ${env:SUPABASE_KEY}
+    HUGGINGFACE_API_KEY: ${env:HUGGINGFACE_API_KEY}
+    ENVIRONMENT: production
+  
+  # IAM permissions (minimal - just CloudWatch Logs)
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  api:
+    handler: app.main.handler
+    description: VolunteerManager API - Animal advocacy volunteer management
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: any
+      - httpApi:
+          path: /
+          method: any
+    
+    # OPTIONAL: Keep 1 instance warm (costs ~$5/mo, removes cold starts)
+    # Uncomment if you want ZERO cold starts:
+    # provisionedConcurrency: 1
+
+# Package optimization (exclude unnecessary files)
+package:
+  patterns:
+    - '!node_modules/**'
+    - '!.venv/**'
+    - '!venv/**'
+    - '!.git/**'
+    - '!.env'
+    - '!**/__pycache__/**'
+    - '!*.pyc'
+    - '!.pytest_cache/**'
+    - '!tests/**'
+    - '!*.md'
+    - '!BackendPRD'
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: false  # Set to true if you're on Windows/Mac and have issues
+    slim: true           # Remove unnecessary files from packages
+    strip: false
+    zip: true
+    layer: false
+    useStaticCache: false
+    useDownloadCache: false
