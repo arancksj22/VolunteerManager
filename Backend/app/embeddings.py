@@ -2,15 +2,14 @@
 Embedding engine using HuggingFace Inference API for semantic matching.
 Simple, lightweight, and free for development!
 """
-import requests
 from typing import List
-import time
+from huggingface_hub import InferenceClient
 from app.config import get_settings
 
 
 class EmbeddingEngine:
     """
-    HuggingFace API-based embedding engine.
+    HuggingFace API-based embedding engine using official InferenceClient.
     No local model needed - calls HuggingFace's free inference API.
     """
     _instance = None
@@ -23,9 +22,12 @@ class EmbeddingEngine:
     def __init__(self):
         """Initialize API configuration."""
         settings = get_settings()
-        self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{settings.model_name}"
-        self.headers = {"Authorization": f"Bearer {settings.huggingface_api_key}"}
-        print(f"✅ Embedding engine configured with HuggingFace API: {settings.model_name}")
+        self.model_name = settings.model_name
+        self.client = InferenceClient(
+            model=self.model_name,
+            token=settings.huggingface_api_key or None,
+        )
+        print(f"✅ Embedding engine configured with HuggingFace API: {self.model_name}")
     
     def encode(self, text: str, retries: int = 3) -> List[float]:
         """
@@ -39,46 +41,25 @@ class EmbeddingEngine:
             List of floats representing the 384-dimensional embedding
         """
         if not text or not text.strip():
-            # Return zero vector for empty text
             settings = get_settings()
             return [0.0] * settings.embedding_dimension
         
         for attempt in range(retries):
             try:
-                response = requests.post(
-                    self.api_url,
-                    headers=self.headers,
-                    json={"inputs": text, "options": {"wait_for_model": True}},
-                    timeout=30
-                )
-                
-                if response.status_code == 200:
-                    # HuggingFace returns a nested list, we need the first element
-                    result = response.json()
-                    if isinstance(result, list) and len(result) > 0:
-                        return result[0] if isinstance(result[0], list) else result
+                result = self.client.feature_extraction(text)
+                # Result can be nested; flatten to 1D list
+                if hasattr(result, 'tolist'):
+                    result = result.tolist()
+                if isinstance(result, list) and len(result) > 0:
+                    if isinstance(result[0], list):
+                        return result[0]
                     return result
+                return result
                 
-                elif response.status_code == 503:
-                    # Model is loading, wait and retry
-                    if attempt < retries - 1:
-                        wait_time = 2 ** attempt  # Exponential backoff
-                        print(f"Model loading, retrying in {wait_time}s...")
-                        time.sleep(wait_time)
-                        continue
-                
-                # Other errors
-                error_msg = response.json().get('error', response.text)
-                raise Exception(f"HuggingFace API error ({response.status_code}): {error_msg}")
-                
-            except requests.exceptions.Timeout:
-                if attempt < retries - 1:
-                    print(f"Request timeout, retrying...")
-                    continue
-                raise Exception("HuggingFace API timeout after retries")
-            
             except Exception as e:
                 if attempt < retries - 1:
+                    import time
+                    time.sleep(2 ** attempt)
                     continue
                 raise Exception(f"Failed to generate embedding: {str(e)}")
         
