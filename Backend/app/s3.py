@@ -11,12 +11,18 @@ from app.config import get_settings
 def get_s3_client():
     """Get configured S3 client."""
     settings = get_settings()
-    return boto3.client(
-        's3',
-        aws_access_key_id=settings.aws_access_key_id,
-        aws_secret_access_key=settings.aws_secret_access_key,
-        region_name=settings.aws_region
-    )
+    
+    client_config = {
+        'aws_access_key_id': settings.aws_access_key_id,
+        'aws_secret_access_key': settings.aws_secret_access_key,
+        'region_name': settings.aws_region
+    }
+    
+    # Add endpoint URL for Backblaze or other S3-compatible services
+    if settings.aws_endpoint_url:
+        client_config['endpoint_url'] = settings.aws_endpoint_url
+    
+    return boto3.client('s3', **client_config)
 
 
 def generate_s3_key(coordinator_email: str, filename: str) -> str:

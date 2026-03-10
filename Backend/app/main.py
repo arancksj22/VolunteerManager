@@ -12,7 +12,7 @@ import traceback
 from app.config import get_settings
 from app.embeddings import get_embedding_engine
 from app.models import HealthResponse, ErrorResponse
-from app.routes import volunteers, tasks, activities, documents
+from app.routes import volunteers, tasks, activities, documents, chatbot, notes, emails
 
 
 # ============================================================================
@@ -248,6 +248,147 @@ async def get_stats():
 
 
 # ============================================================================
+# CRON ENDPOINT - Daily Engagement Decay
+# ============================================================================
+
+def compute_decay(days_inactive: float, current_score: int) -> int:
+    """
+    Adaptive exponential decay with score-relative scaling.
+    
+    Formula:  decay = ceil( base * e^(k * days_inactive) * (score / 100) )
+    
+    Why this works:
+    
+    1. EXPONENTIAL INACTIVITY FACTOR — e^(k * days_inactive)
+       • Models real-world behavioral science: disengagement is not linear.
+       • A volunteer absent for 1 day is probably just busy.
+       • A volunteer absent for 30 days is *actively* disengaging.
+       • Exponential growth captures this accelerating churn risk.
+       • k=0.03 gives a gentle curve that doubles roughly every 23 days.
+    
+    2. SCORE-RELATIVE SCALING — (current_score / 100)
+       • A high-engagement volunteer (score=200) has more to lose
+         because there is more "engagement inertia" to erode.
+       • A low-engagement volunteer (score=10) decays slowly because
+         they are already near-churned; hammering them further is
+         pointless and would make re-engagement impossible.
+       • This mirrors real retention models — you lose power users
+         faster in absolute terms, but slow-bleed users stabilize.
+    
+    3. FLOOR AND CAP
+       • Minimum decay of 1 point (no free passes after day 0).
+       • Maximum decay of 15 points/day (prevents score annihilation
+         for long-inactive users re-discovered by the cron).
+       • Score floors at 0 (no negatives).
+    
+    Example decay values (score=100):
+       Day 1 inactive  → ~1 pt     (grace period)
+       Day 7 inactive  → ~1 pt     (still gentle)
+       Day 14 inactive → ~2 pts    (ramping up)
+       Day 30 inactive → ~2 pts    (noticeable)
+       Day 45 inactive → ~4 pts    (danger zone)
+       Day 60 inactive → ~6 pts    (critical churn)
+       Day 90 inactive → ~15 pts   (capped, max decay)
+    """
+    import math
+    
+    BASE_RATE = 1.0       # minimum daily decay baseline
+    GROWTH_K = 0.03       # exponential growth constant
+    MAX_DECAY = 15        # hard cap per day
+    
+    # Exponential factor from inactivity duration
+    inactivity_factor = math.exp(GROWTH_K * days_inactive)
+    
+    # Scale by how much score the volunteer has (normalize around 100)
+    score_factor = max(current_score, 1) / 100.0
+    
+    raw_decay = BASE_RATE * inactivity_factor * score_factor
+    
+    return min(math.ceil(raw_decay), MAX_DECAY)
+
+
+@app.post(
+    "/cron/daily-decay",
+    tags=["Cron"],
+    summary="Daily adaptive engagement decay (hit by cron job)"
+)
+async def daily_decay():
+    """
+    Applies adaptive exponential decay to every volunteer's engagement score.
+    
+    Uses a mathematically modeled decay function that considers:
+    - Days since last activity (exponential acceleration)
+    - Current engagement score (score-relative scaling)
+    
+    Should be triggered once per day by an external cron service
+    (e.g., AWS EventBridge, cron-job.org, GitHub Actions schedule).
+    """
+    from app.database import get_db
+    
+    db = get_db()
+    
+    try:
+        response = db.table("volunteers") \
+            .select("id, engagement_score, last_active_at") \
+            .execute()
+        volunteers_list = response.data or []
+        
+        updated = 0
+        total_decayed = 0
+        decay_details = []
+        
+        for vol in volunteers_list:
+            current = vol.get("engagement_score", 0)
+            last_active = vol.get("last_active_at")
+            
+            if current <= 0:
+                continue
+            
+            # Calculate days inactive
+            if last_active:
+                last_dt = datetime.fromisoformat(last_active.replace("Z", "+00:00"))
+                days_inactive = (datetime.now(last_dt.tzinfo) - last_dt).total_seconds() / 86400.0
+            else:
+                days_inactive = 30.0  # assume 30 days if never active
+            
+            decay_amount = compute_decay(days_inactive, current)
+            new_score = max(0, current - decay_amount)
+            
+            if new_score != current:
+                db.table("volunteers") \
+                    .update({"engagement_score": new_score}) \
+                    .eq("id", vol["id"]) \
+                    .execute()
+                updated += 1
+                total_decayed += decay_amount
+                decay_details.append({
+                    "id": vol["id"],
+                    "days_inactive": round(days_inactive, 1),
+                    "decay": decay_amount,
+                    "old_score": current,
+                    "new_score": new_score,
+                })
+        
+        return {
+            "status": "ok",
+            "algorithm": "adaptive_exponential_decay",
+            "formula": "decay = ceil(base * e^(k * days_inactive) * (score / 100))",
+            "params": {"base_rate": 1.0, "growth_k": 0.03, "max_decay": 15},
+            "total_volunteers": len(volunteers_list),
+            "updated": updated,
+            "skipped": len(volunteers_list) - updated,
+            "total_points_decayed": total_decayed,
+            "details": decay_details[:10],  # first 10 for brevity
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"error": f"Decay job failed: {str(e)}"}
+        )
+
+
+# ============================================================================
 # INCLUDE ROUTERS
 # ============================================================================
 
@@ -255,6 +396,9 @@ app.include_router(volunteers.router)
 app.include_router(tasks.router)
 app.include_router(activities.router)
 app.include_router(documents.router)
+app.include_router(chatbot.router)
+app.include_router(notes.router)
+app.include_router(emails.router)
 
 
 # ============================================================================

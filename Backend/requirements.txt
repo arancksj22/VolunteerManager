@@ -11,6 +11,15 @@ supabase==2.3.4
 # AWS S3
 boto3==1.34.34
 
+# Google Gemini AI
+google-generativeai==0.3.2
+
+# Redis (for coordinator notes)
+redis==5.0.1
+
+# Resend (for email notifications)
+resend==2.23.0
+
 # HTTP Requests (for HuggingFace API)
 requests==2.31.0
 
