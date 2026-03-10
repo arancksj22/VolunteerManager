@@ -1,7 +1,7 @@
 # Supabase Authentication Setup Guide
 
 ## Overview
-This guide walks you through setting up Supabase authentication for the VolunteerManager application with two portals: **Coordinator** (protected) and **Volunteer** (optional login).
+This guide walks you through setting up Supabase authentication for the MissionMatch application with two portals: **Coordinator** (protected) and **Volunteer** (optional login).
 
 ---
 
@@ -10,7 +10,7 @@ This guide walks you through setting up Supabase authentication for the Voluntee
 1. Go to [supabase.com](https://supabase.com) and sign in
 2. Click **"New Project"**
 3. Fill in:
-   - **Project Name**: `volunteer-manager` (or your choice)
+   - **Project Name**: `mission-match` (or your choice)
    - **Database Password**: Save this securely!
    - **Region**: Choose closest to you
 4. Click **"Create new project"** and wait ~2 minutes for provisioning

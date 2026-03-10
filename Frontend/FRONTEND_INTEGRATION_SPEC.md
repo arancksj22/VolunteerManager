@@ -1,8 +1,8 @@
-# 🎨 VolunteerManager Frontend - Complete Build Specification
+# 🎨 MissionMatch Frontend - Complete Build Specification
 
 ## 🚀 DESIGN PROMPT - BUILD THE ENTIRE WEBSITE
 
-You are building **VolunteerManager**, an AI-native volunteer management platform for **animal advocacy organizations** that solves volunteer churn with intelligent matching and health monitoring.
+You are building **MissionMatch**, an AI-native volunteer management platform for **animal advocacy organizations** that solves volunteer churn with intelligent matching and health monitoring.
 
 ### 🐾 **Context: Animal Advocacy Coordinators**
 
@@ -391,7 +391,7 @@ VOLUNTEER PORTAL (Public):
 **Setup Commands:**
 ```bash
 # Create Next.js app
-npx create-next-app@latest volunteer-manager --typescript --tailwind --app
+npx create-next-app@latest mission-match --typescript --tailwind --app
 
 # Initialize shadcn/ui
 npx shadcn-ui@latest init
@@ -1377,7 +1377,7 @@ async function checkDatabaseHealth(): Promise<HealthResponse> {
 **Response**:
 ```json
 {
-  "application": "VolunteerManager API",
+  "application": "MissionMatch API",
   "version": "1.0.0",
   "environment": "development",
   "python_version": "3.10.0",
@@ -2347,7 +2347,7 @@ console.log('Logged activity:', activity);
 
 ```typescript
 // api-client.ts
-export class VolunteerManagerAPI {
+export class MissionMatchAPI {
   constructor(private baseURL: string) {}
   
   // Volunteers
@@ -2477,7 +2477,7 @@ export class VolunteerManagerAPI {
 }
 
 // Usage
-export const api = new VolunteerManagerAPI('http://localhost:8000');
+export const api = new MissionMatchAPI('http://localhost:8000');
 ```
 
 ---
@@ -2521,7 +2521,7 @@ export const api = new VolunteerManagerAPI('http://localhost:8000');
 
 ### System Overview
 ```
-VolunteerManager
+MissionMatch
 ├── Coordinator Portal (/coordinator/*)
 │   ├── Authentication: REQUIRED (Supabase Auth)
 │   ├── Users: Animal advocacy coordinators

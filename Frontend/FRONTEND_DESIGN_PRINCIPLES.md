@@ -1,4 +1,4 @@
-# 🎨 VolunteerManager Frontend Design Principles
+# 🎨 MissionMatch Frontend Design Principles
 
 ## ⚠️ **CRITICAL: This is NOT a Generic CRUD App**
 

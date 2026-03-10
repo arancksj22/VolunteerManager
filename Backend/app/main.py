@@ -12,7 +12,7 @@ import traceback
 from app.config import get_settings
 from app.embeddings import get_embedding_engine
 from app.models import HealthResponse, ErrorResponse
-from app.routes import volunteers, tasks, activities
+from app.routes import volunteers, tasks, activities, documents
 
 
 # ============================================================================
@@ -174,12 +174,87 @@ async def system_info():
 
 
 # ============================================================================
+# STATISTICS ENDPOINT
+# ============================================================================
+
+@app.get(
+    "/stats",
+    tags=["Statistics"],
+    summary="Get dashboard statistics"
+)
+async def get_stats():
+    """
+    Aggregate statistics for the coordinator dashboard.
+    """
+    from app.database import get_db
+    db = get_db()
+    
+    try:
+        # Total volunteers
+        vol_response = db.table("volunteers").select("id, engagement_score").execute()
+        volunteers = vol_response.data or []
+        total_volunteers = len(volunteers)
+        
+        scores = [v["engagement_score"] for v in volunteers if v.get("engagement_score") is not None]
+        avg_engagement = sum(scores) / len(scores) if scores else 0
+        
+        # Health distribution from retention view
+        healthy = warning = at_risk = 0
+        try:
+            health_response = db.table("volunteer_retention_status").select("status").execute()
+            for row in (health_response.data or []):
+                s = row.get("status", "")
+                if s == "Healthy":
+                    healthy += 1
+                elif s == "Warning":
+                    warning += 1
+                elif s == "At-Risk":
+                    at_risk += 1
+        except Exception:
+            pass
+        
+        # Activity count this month
+        total_hours = 0
+        try:
+            act_response = db.table("activity_logs").select("id").execute()
+            total_hours = len(act_response.data or [])
+        except Exception:
+            pass
+        
+        # Active volunteers (those with engagement_score > 50)
+        active_volunteers = sum(1 for v in volunteers if v.get("engagement_score", 0) > 50)
+        
+        return {
+            "total_volunteers": total_volunteers,
+            "active_volunteers": active_volunteers,
+            "at_risk_count": at_risk,
+            "total_hours_this_month": total_hours,
+            "avg_engagement_score": avg_engagement,
+            "health_distribution": {
+                "Healthy": healthy,
+                "Warning": warning,
+                "At-Risk": at_risk
+            }
+        }
+    except Exception as e:
+        return {
+            "total_volunteers": 0,
+            "active_volunteers": 0,
+            "at_risk_count": 0,
+            "total_hours_this_month": 0,
+            "avg_engagement_score": 0,
+            "health_distribution": {"Healthy": 0, "Warning": 0, "At-Risk": 0}
+        }
+
+
+# ============================================================================
 # INCLUDE ROUTERS
 # ============================================================================
 
 app.include_router(volunteers.router)
 app.include_router(tasks.router)
 app.include_router(activities.router)
+app.include_router(documents.router)
 
 
 # ============================================================================

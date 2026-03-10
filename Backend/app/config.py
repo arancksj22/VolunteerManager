@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     # HuggingFace API (for embeddings)
     huggingface_api_key: str = ""  # Optional, works without auth but with rate limits
     
+    # AWS S3 (for document storage)
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    aws_region: str = "us-east-1"
+    aws_s3_bucket: str = ""
+    
     # Application
     environment: str = "development"
     model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
