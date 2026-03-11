@@ -14,6 +14,10 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "MissionMatch - AI-Powered Volunteer Management",
   description: "Intelligent volunteer management for animal advocacy organizations. Stop losing advocates with smart matching and health monitoring.",
+  icons: {
+    icon: "/LogoIcon.jpg",
+    apple: "/LogoIcon.jpg",
+  },
 };
 
 export default function RootLayout({

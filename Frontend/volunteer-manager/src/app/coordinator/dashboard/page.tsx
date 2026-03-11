@@ -17,7 +17,7 @@ import {
 } from 'recharts';
 
 const HEALTH_COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
-const ACTIVITY_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#7c3aed'];
+const ACTIVITY_COLORS = ['#9333ea', '#c026d3', '#e879f9', '#7c3aed'];
 
 export default function CoordinatorDashboard() {
   const { data: stats } = useQuery({

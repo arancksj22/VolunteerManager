@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Heart, Users, TrendingUp, CheckCircle, ArrowRight, Target, BarChart3, Shield, Bot, ClipboardList, Bell, Zap } from 'lucide-react';
+import { AnimateOnScroll } from '@/components/animate-on-scroll';
 
 export default function HomePage() {
   return (
@@ -32,38 +33,48 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <p className="text-sm font-medium text-purple-600 mb-4 tracking-wide uppercase">
-                Volunteer Management Platform
-              </p>
-              <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]">
-                Keep every volunteer matched, active, and retained
-              </h1>
-              <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
-                The all-in-one platform for advocacy organizations to onboard volunteers, match them to the right campaigns, and track engagement over time.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link href="/coordinator/login">
-                  <Button size="lg" className="gap-2 w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white border-0 px-6">
-                    <Shield className="h-4 w-4" />
-                    Open Dashboard
-                  </Button>
-                </Link>
-                <Link href="#how-it-works">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto px-6">
-                    See How It Works
-                  </Button>
-                </Link>
+              <AnimateOnScroll animation="fade-up">
+                <p className="text-sm font-medium text-purple-600 mb-4 tracking-wide uppercase">
+                  Volunteer Management Platform
+                </p>
+              </AnimateOnScroll>
+              <AnimateOnScroll animation="fade-up" delay={120}>
+                <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6 leading-[1.15]">
+                  Keep every volunteer matched, active, and retained
+                </h1>
+              </AnimateOnScroll>
+              <AnimateOnScroll animation="fade-up" delay={240}>
+                <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
+                  The all-in-one platform for advocacy organizations to onboard volunteers, match them to the right campaigns, and track engagement over time.
+                </p>
+              </AnimateOnScroll>
+              <AnimateOnScroll animation="fade-up" delay={360}>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link href="/coordinator/login">
+                    <Button size="lg" className="gap-2 w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white border-0 px-6">
+                      <Shield className="h-4 w-4" />
+                      Open Dashboard
+                    </Button>
+                  </Link>
+                  <Link href="#how-it-works">
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto px-6">
+                      See How It Works
+                    </Button>
+                  </Link>
+                </div>
+              </AnimateOnScroll>
+            </div>
+            <AnimateOnScroll animation="fade-left" delay={200}>
+              <div className="relative aspect-square lg:aspect-auto lg:h-[500px] rounded-2xl overflow-hidden">
+                <Image
+                src="/VolunteerManager Landing Page Image 1.png"
+                alt="Volunteer management platform hero image"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
-            </div>
-            <div className="relative aspect-square lg:aspect-auto lg:h-[500px] rounded-2xl overflow-hidden">
-              <Image
-                src="/VolunteerMgr_Lucky-Dog.jfif"
-                alt="Lucky dog at volunteer-managed sanctuary"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
+            </AnimateOnScroll>
           </div>
         </div>
       </section>
@@ -77,34 +88,56 @@ export default function HomePage() {
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div>
-              <div className="text-3xl font-bold text-foreground mb-1">20–2,000</div>
-              <div className="text-sm text-muted-foreground">Volunteers per organization</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-foreground mb-1">AI-Powered</div>
-              <div className="text-sm text-muted-foreground">Skill-to-campaign matching</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-foreground mb-1">Real-Time</div>
-              <div className="text-sm text-muted-foreground">Engagement scoring &amp; alerts</div>
-            </div>
+            <AnimateOnScroll animation="fade-up" delay={0}>
+              <div>
+                <div className="text-3xl font-bold text-foreground mb-1">20–2,000</div>
+                <div className="text-sm text-muted-foreground">Volunteers per organization</div>
+              </div>
+            </AnimateOnScroll>
+            <AnimateOnScroll animation="fade-up" delay={150}>
+              <div>
+                <div className="text-3xl font-bold text-foreground mb-1">AI-Powered</div>
+                <div className="text-sm text-muted-foreground">Skill-to-campaign matching</div>
+              </div>
+            </AnimateOnScroll>
+            <AnimateOnScroll animation="fade-up" delay={300}>
+              <div>
+                <div className="text-3xl font-bold text-foreground mb-1">Real-Time</div>
+                <div className="text-sm text-muted-foreground">Engagement scoring &amp; alerts</div>
+              </div>
+            </AnimateOnScroll>
           </div>
         </div>
       </section>
 
       {/* The Challenge */}
-      <section className="py-24 bg-zinc-950 text-zinc-50">
+      <section className="py-24 text-zinc-50" style={{ backgroundColor: '#09090b' }}>
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <AnimateOnScroll animation="fade-right" delay={100}>
+              <div className="relative aspect-video lg:aspect-auto lg:h-[500px] rounded-2xl overflow-hidden">
+                <Image
+                  src="/bigstock-Volunteers-With-Homeless-Dog-A-330224209.jpg"
+                  alt="Volunteers helping a homeless dog at an animal shelter"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </AnimateOnScroll>
             <div>
-              <p className="text-sm font-medium text-purple-400 mb-3 tracking-wide uppercase">The challenge</p>
-              <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight">
-                Great volunteers need great management
-              </h2>
-              <p className="text-lg text-zinc-300 mb-8 leading-relaxed">
-                Advocacy organizations onboard passionate people every week—but without the right tools, it&apos;s nearly impossible to keep everyone matched, engaged, and growing.
-              </p>
+              <AnimateOnScroll animation="fade-left" delay={0}>
+                <p className="text-sm font-medium text-purple-400 mb-3 tracking-wide uppercase">The challenge</p>
+              </AnimateOnScroll>
+              <AnimateOnScroll animation="fade-left" delay={120}>
+                <h2 className="text-3xl lg:text-4xl font-bold mb-6 leading-tight">
+                  Great volunteers need great management
+                </h2>
+              </AnimateOnScroll>
+              <AnimateOnScroll animation="fade-left" delay={240}>
+                <p className="text-lg text-zinc-300 mb-8 leading-relaxed">
+                  Advocacy organizations onboard passionate people every week—but without the right tools, it&apos;s nearly impossible to keep everyone matched, engaged, and growing.
+                </p>
+              </AnimateOnScroll>
               <div className="space-y-5 mb-10">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0 mt-1">
@@ -153,14 +186,6 @@ export default function HomePage() {
                 </Button>
               </Link>
             </div>
-            <div className="relative aspect-video lg:aspect-auto lg:h-[500px] rounded-2xl overflow-hidden">
-              <Image
-                src="/bigstock-Volunteers-With-Homeless-Dog-A-330224209.jpg"
-                alt="Volunteers helping a homeless dog at an animal shelter"
-                fill
-                className="object-cover"
-              />
-            </div>
           </div>
         </div>
       </section>
@@ -168,54 +193,64 @@ export default function HomePage() {
       {/* Four Pillars */}
       <section id="how-it-works" className="py-24 bg-zinc-900 text-zinc-50">
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-sm font-medium text-purple-400 mb-3 tracking-wide uppercase">Platform features</p>
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-50 mb-4">
-            Everything you need to manage volunteers at scale
-          </h2>
-          <p className="text-zinc-400 mb-14 max-w-xl">
-            Four integrated tools that replace your spreadsheets, guesswork, and manual follow-ups.
-          </p>
+          <AnimateOnScroll animation="fade-up">
+            <p className="text-sm font-medium text-purple-400 mb-3 tracking-wide uppercase">Platform features</p>
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-50 mb-4">
+              Everything you need to manage volunteers at scale
+            </h2>
+            <p className="text-zinc-400 mb-14 max-w-xl">
+              Four integrated tools that replace your spreadsheets, guesswork, and manual follow-ups.
+            </p>
+          </AnimateOnScroll>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="border-l-3 border-l-purple-500 pl-6">
-              <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-                <ClipboardList className="h-5 w-5 text-purple-400" />
+            <AnimateOnScroll animation="fade-up" delay={0}>
+              <div className="border-l-3 border-l-purple-500 pl-6">
+                <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
+                  <ClipboardList className="h-5 w-5 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-zinc-50 mb-2">Smart Intake</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  Intake forms that capture skills, availability, and interests—structured for instant matching.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-zinc-50 mb-2">Smart Intake</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Intake forms that capture skills, availability, and interests—structured for instant matching.
-              </p>
-            </div>
+            </AnimateOnScroll>
 
-            <div className="border-l-3 border-l-purple-500 pl-6">
-              <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-                <Zap className="h-5 w-5 text-purple-400" />
+            <AnimateOnScroll animation="fade-up" delay={100}>
+              <div className="border-l-3 border-l-purple-500 pl-6">
+                <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
+                  <Zap className="h-5 w-5 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-zinc-50 mb-2">AI Matching</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  A routing engine that matches volunteers to tasks based on their skills, interests, and availability.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-zinc-50 mb-2">AI Matching</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                A routing engine that matches volunteers to tasks based on their skills, interests, and availability.
-              </p>
-            </div>
+            </AnimateOnScroll>
 
-            <div className="border-l-3 border-l-purple-500 pl-6">
-              <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-                <TrendingUp className="h-5 w-5 text-purple-400" />
+            <AnimateOnScroll animation="fade-up" delay={200}>
+              <div className="border-l-3 border-l-purple-500 pl-6">
+                <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
+                  <TrendingUp className="h-5 w-5 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-zinc-50 mb-2">Engagement Scoring</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  Track each volunteer&apos;s activity over time with a real-time engagement score you can act on.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-zinc-50 mb-2">Engagement Scoring</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Track each volunteer&apos;s activity over time with a real-time engagement score you can act on.
-              </p>
-            </div>
+            </AnimateOnScroll>
 
-            <div className="border-l-3 border-l-purple-500 pl-6">
-              <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-                <Bell className="h-5 w-5 text-purple-400" />
+            <AnimateOnScroll animation="fade-up" delay={300}>
+              <div className="border-l-3 border-l-purple-500 pl-6">
+                <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
+                  <Bell className="h-5 w-5 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-zinc-50 mb-2">Retention Alerts</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  Automatic flags when a volunteer&apos;s engagement drops, so you can reach out before they drift away.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-zinc-50 mb-2">Retention Alerts</h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                Automatic flags when a volunteer&apos;s engagement drops, so you can reach out before they drift away.
-              </p>
-            </div>
+            </AnimateOnScroll>
           </div>
         </div>
       </section>
@@ -225,51 +260,61 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-sm font-medium text-purple-600 mb-3 tracking-wide uppercase">Coordinator workflow</p>
-              <h2 className="text-3xl font-bold tracking-tight text-foreground mb-6">
-                Up and running in minutes
-              </h2>
+              <AnimateOnScroll animation="fade-right">
+                <p className="text-sm font-medium text-purple-600 mb-3 tracking-wide uppercase">Coordinator workflow</p>
+                <h2 className="text-3xl font-bold tracking-tight text-foreground mb-6">
+                  Up and running in minutes
+                </h2>
+              </AnimateOnScroll>
 
               <div className="space-y-8">
-                <div className="flex gap-5">
-                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">1</div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Create campaigns &amp; tasks</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Set up your advocacy campaigns with the skills and availability you need. The platform handles the rest.
-                    </p>
+                <AnimateOnScroll animation="fade-right" delay={100}>
+                  <div className="flex gap-5">
+                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">1</div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Create campaigns &amp; tasks</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Set up your advocacy campaigns with the skills and availability you need. The platform handles the rest.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </AnimateOnScroll>
 
-                <div className="flex gap-5">
-                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">2</div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Volunteers get matched automatically</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      As volunteers sign up, AI matches them to campaigns that fit their skills and interests—no manual sorting.
-                    </p>
+                <AnimateOnScroll animation="fade-right" delay={250}>
+                  <div className="flex gap-5">
+                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">2</div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Volunteers get matched automatically</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        As volunteers sign up, AI matches them to campaigns that fit their skills and interests—no manual sorting.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </AnimateOnScroll>
 
-                <div className="flex gap-5">
-                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">3</div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Monitor engagement &amp; act on alerts</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Track engagement scores across your roster. Get flagged when someone needs attention, and reach out with one click.
-                    </p>
+                <AnimateOnScroll animation="fade-right" delay={400}>
+                  <div className="flex gap-5">
+                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">3</div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Monitor engagement &amp; act on alerts</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Track engagement scores across your roster. Get flagged when someone needs attention, and reach out with one click.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </AnimateOnScroll>
               </div>
             </div>
-            <div className="relative aspect-video lg:aspect-auto lg:h-[400px] rounded-2xl overflow-hidden">
-              <Image
-                src="/clipboard-volunteering-portrait-and-woman-in-park.webp"
-                alt="Volunteer coordinator with clipboard at park event"
-                fill
-                className="object-cover"
-              />
-            </div>
+            <AnimateOnScroll animation="fade-left" delay={200}>
+              <div className="relative aspect-video lg:aspect-auto lg:h-[400px] rounded-2xl overflow-hidden">
+                <Image
+                  src="/VolunteerManager Landing Page Image 3.webp"
+                  alt="Volunteer coordinator managing team"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </AnimateOnScroll>
           </div>
         </div>
       </section>
@@ -277,10 +322,12 @@ export default function HomePage() {
       {/* Coordinator Benefits */}
       <section className="py-24 section-alt">
         <div className="max-w-6xl mx-auto px-6">
-          <p className="text-sm font-medium text-purple-600 mb-3 tracking-wide uppercase">Why coordinators choose us</p>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground mb-12">
-            Built for organizations managing 20 to 2,000 volunteers
-          </h2>
+          <AnimateOnScroll animation="fade-up">
+            <p className="text-sm font-medium text-purple-600 mb-3 tracking-wide uppercase">Why coordinators choose us</p>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground mb-12">
+              Built for organizations managing 20 to 2,000 volunteers
+            </h2>
+          </AnimateOnScroll>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="flex gap-4">

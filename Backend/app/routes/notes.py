@@ -14,7 +14,7 @@ from ..redisnotes import (
     search_notes
 )
 
-router = APIRouter(prefix="/api/notes", tags=["notes"])
+router = APIRouter(prefix="/notes", tags=["notes"])
 
 
 class CreateNoteRequest(BaseModel):

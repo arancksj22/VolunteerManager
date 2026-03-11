@@ -94,9 +94,9 @@
   
   /* Charts - Purple-accent palette */
   --chart-1: 270 70% 55%;
-  --chart-2: 142 71% 45%;
-  --chart-3: 240 60% 60%;
-  --chart-4: 290 70% 50%;
+  --chart-2: 290 85% 45%;
+  --chart-3: 280 65% 60%;
+  --chart-4: 300 70% 50%;
   --chart-5: 262 80% 50%;
   
   /* Radius - Apple-style subtle rounding */
@@ -149,9 +149,9 @@
   --ring: 270 65% 60%;
   
   --chart-1: 270 65% 60%;
-  --chart-2: 142 71% 45%;
-  --chart-3: 240 60% 65%;
-  --chart-4: 290 65% 55%;
+  --chart-2: 290 80% 50%;
+  --chart-3: 280 60% 65%;
+  --chart-4: 300 65% 55%;
   --chart-5: 262 80% 50%;
   
   --sidebar: 0 0% 12%;
@@ -209,4 +209,40 @@
 
 .dark .section-alt {
   background-color: hsl(0 0% 11%);
+}
+
+/* ─── Scroll animations ─── */
+
+.scroll-hidden {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-fade-up {
+  transform: translateY(36px);
+}
+
+.scroll-fade-left {
+  transform: translateX(48px);
+}
+
+.scroll-fade-right {
+  transform: translateX(-48px);
+}
+
+.scroll-fade-in {
+  transform: scale(0.97);
+}
+
+.scroll-visible {
+  opacity: 1 !important;
+  transform: translateY(0) translateX(0) scale(1) !important;
+}
+
+/* Dynamic background text color helpers */
+.dynamic-text {
+  color: rgb(var(--dynamic-text-r, 9), var(--dynamic-text-g, 9), var(--dynamic-text-b, 11));
+  transition: color 0.05s linear;
 }
