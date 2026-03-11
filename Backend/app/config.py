@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     
     # AWS S3 (for document storage)
-    aws_access_key_id: str = ""
-    aws_secret_access_key: str = ""
-    aws_region: str = "us-east-1"
+    s3_access_key_id: str = ""
+    s3_secret_access_key: str = ""
+    s3_region: str = "us-east-1"
     aws_s3_bucket: str = ""
     aws_endpoint_url: str = ""  # For Backblaze B2 or other S3-compatible services
     

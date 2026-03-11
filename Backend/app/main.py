@@ -405,14 +405,8 @@ app.include_router(emails.router)
 # AWS LAMBDA HANDLER (for serverless deployment)
 # ============================================================================
 
-try:
-    from mangum import Mangum
-    # Mangum adapter converts ASGI (FastAPI) to AWS Lambda handler
-    handler = Mangum(app, lifespan="off")
-except ImportError:
-    # Mangum not installed - Lambda deployment not available
-    # (Only needed if deploying to AWS Lambda)
-    pass
+from mangum import Mangum
+handler = Mangum(app, lifespan="off")
 
 
 # ============================================================================

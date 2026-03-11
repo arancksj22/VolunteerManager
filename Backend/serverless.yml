@@ -4,7 +4,7 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: python3.10
+  runtime: python3.11
   region: us-east-1  # Change to your preferred region (us-east-1 has largest free tier)
   stage: ${opt:stage, 'dev'}
   
