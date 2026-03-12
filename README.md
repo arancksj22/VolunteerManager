@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="Frontend/volunteer-manager/public/LogoIcon.jpg" alt="MissionMatch Logo" width="120" height="120" style="border-radius: 20px;" />
-
 # MissionMatch
 
 **AI-powered volunteer management platform for animal advocacy organizations.**
@@ -9,15 +7,25 @@
 [![Deployed on Vercel](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)](https://volunteer2-mu.vercel.app)
 [![AWS Lambda](https://img.shields.io/badge/Backend-AWS%20Lambda-FF9900?logo=awslambda&logoColor=white)](https://aws.amazon.com/lambda/)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Database-Supabase-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-Cloud-DC382D?logo=redis&logoColor=white)](https://redis.io/)
+[![Amazon S3](https://img.shields.io/badge/Amazon%20S3-Storage-569A31?logo=amazons3&logoColor=white)](https://aws.amazon.com/s3/)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-Embeddings-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-AI-4285F4?logo=googlegemini&logoColor=white)](https://ai.google.dev/)
+[![Resend](https://img.shields.io/badge/Resend-Email-000000?logo=resend)](https://resend.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
 
 ---
 
-An intelligent platform that uses semantic AI matching and behavioral analytics to help nonprofit coordinators recruit, retain, and re-engage volunteers before they churn.
+An AI-enabled volunteer management platform powered by AWS — using semantic matching and behavioral analytics to help nonprofit coordinators recruit, retain, and re-engage volunteers before they churn.
 
 ---
 
@@ -81,8 +89,6 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 | Supabase | Managed PostgreSQL + pgvector + Auth (JWT) |
 | AWS S3 | Document storage |
 | Redis Cloud | Redis for coordinator notes |
-| HuggingFace Inference API | Text embeddings (384 dimensions) |
-| Google Gemini | AI assistant |
 
 ---
 
@@ -120,8 +126,8 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 - Automatically updates volunteer engagement scores and last-active timestamps
 - Full activity history per volunteer
 
-### AI Assistant (Gemini Chatbot)
-- Coordinator-facing AI assistant powered by Gemini 2.5 Flash Lite
+### AI Assistant
+- Coordinator-facing AI assistant with contextual conversation memory
 - System prompt tuned for volunteer management, campaign planning, and retention advice
 - Conversation history support (last 4 messages for context)
 
@@ -152,11 +158,11 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 
 Every tech choice in this project came from weighing real alternatives. Here is why I picked what I picked.
 
-**Why FastAPI over Django or Flask?**
-Django felt too heavy for a pure API backend with no server-rendered templates. Flask was an option, but FastAPI gives you automatic request validation through Pydantic, auto-generated Swagger docs at `/docs`, and async support out of the box. For a project that is essentially a REST API connecting to external services, FastAPI was the perfect fit. Express.js was also on the table, but I wanted Python for the AI/ML ecosystem.
+**Why FastAPI over Spring Boot or Node.js?**
+Spring Boot is the enterprise standard for Java APIs, but the JVM overhead and verbose boilerplate make it overkill for a lightweight serverless project. Express.js with Node was tempting for its speed and simplicity, but I wanted Python for the AI/ML ecosystem — HuggingFace, sentence-transformers, and the Google Generative AI SDK all have first-class Python support. FastAPI gives you automatic request validation through Pydantic, auto-generated Swagger docs at `/docs`, and async support out of the box.
 
 **Why AWS Lambda over EC2, Railway, or Render?**
-I did not want to manage servers or pay for idle compute. Railway and Render are great for always-on apps, but Lambda scales to zero when nobody is using it, which is ideal for a demo project. The tradeoff is cold starts, but with a 16MB ZIP and Python 3.11, cold starts stay under 3 seconds. I also skipped API Gateway entirely and used Lambda Function URLs directly, which cuts latency and cost.
+I did not want to manage servers or pay for idle compute. Railway and Render are great for always-on apps, but Lambda scales to zero when nobody is using it, which is ideal for a demo project. The tradeoff is cold starts, but with a 16MB ZIP and Python 3.11, cold starts stay under 3 seconds. I also skipped API Gateway entirely and used Lambda Function URLs directly, which cuts latency and cost. I hated Render's cold starts of around 30 seconds, so I took the plunge and worked with Lambda for the first time for this project.
 
 **Why HuggingFace Inference API over local models or OpenAI embeddings?**
 I considered running sentence-transformers locally, but that adds an 80MB+ model download and makes Lambda packaging painful. OpenAI embeddings (text-embedding-ada-002) would work but cost money per request. HuggingFace Inference API gives free access to the same all-MiniLM-L6-v2 model with zero local dependencies. The tradeoff is rate limits on the free tier, but for a volunteer management app, the throughput is more than enough.
@@ -289,7 +295,8 @@ Lambda configuration:
 
 ## API Endpoints
 
-38 endpoints across 7 route modules plus system routes.
+<details>
+<summary><strong>38 endpoints across 7 route modules plus system routes</strong> — click to expand</summary>
 
 ### System
 
@@ -372,6 +379,8 @@ Lambda configuration:
 | GET | `/emails/health` | Email service configuration status |
 
 > Full endpoint documentation with request/response schemas available at `/docs` (Swagger UI) when the backend is running.
+
+</details>
 
 ---
 
