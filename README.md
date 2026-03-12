@@ -4,12 +4,11 @@
 
 **AI-powered volunteer management platform for animal advocacy organizations.**
 
-[![Deployed on Vercel](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)](https://volunteer2-mu.vercel.app)
+[![Deployed on Vercel](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)](https://missionmatch.vercel.app/)
 [![AWS Lambda](https://img.shields.io/badge/Backend-AWS%20Lambda-FF9900?logo=awslambda&logoColor=white)](https://aws.amazon.com/lambda/)
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs)](https://nextjs.org/)
-[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Database-Supabase-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
@@ -18,14 +17,14 @@
 [![Amazon S3](https://img.shields.io/badge/Amazon%20S3-Storage-569A31?logo=amazons3&logoColor=white)](https://aws.amazon.com/s3/)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Embeddings-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-AI-4285F4?logo=googlegemini&logoColor=white)](https://ai.google.dev/)
-[![Resend](https://img.shields.io/badge/Resend-Email-000000?logo=resend)](https://resend.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
 
 ---
 
-An AI-enabled volunteer management platform powered by AWS — using semantic matching and behavioral analytics to help nonprofit coordinators recruit, retain, and re-engage volunteers before they churn.
+An AI-enabled volunteer management platform powered by AWS - using semantic matching and behavioral analytics to help nonprofit coordinators recruit, retain, and re-engage volunteers before they churn.
+
+**[Live Demo](https://missionmatch.vercel.app/)** - visit and go to Coordinator Login to explore the dashboard.
 
 ---
 
@@ -49,7 +48,7 @@ An AI-enabled volunteer management platform powered by AWS — using semantic ma
 
 <div align="center">
 
-<img src="MissionMatchFinalArchitecture.png" alt="MissionMatch Architecture Diagram" width="800" />
+<img src="FinalArchitecture.png" alt="MissionMatch Architecture Diagram" width="800" />
 
 </div>
 
@@ -62,11 +61,9 @@ An AI-enabled volunteer management platform powered by AWS — using semantic ma
 | Technology | Purpose |
 |-----------|---------|
 | Next.js 16 | React framework with App Router, SSR, middleware |
-| React 19 | UI library |
 | TypeScript 5 | Type safety |
 | Tailwind CSS 4 | Utility-first styling |
 | shadcn/ui | 30+ accessible UI components (Radix primitives) |
-
 | Supabase SSR | Auth middleware (JWT session management) |
 
 ### Backend
@@ -84,11 +81,11 @@ An AI-enabled volunteer management platform powered by AWS — using semantic ma
 
 | Service | Role |
 |---------|------|
-| AWS Lambda (eu-north-1) | Serverless backend hosting (Function URL, no API Gateway) |
+| AWS Lambda (eu-north-1) | Serverless backend hosting (Function URL) |
 | Vercel | Frontend CDN and edge deployment |
 | Supabase | Managed PostgreSQL + pgvector + Auth (JWT) |
 | AWS S3 | Document storage |
-| Redis Cloud | Redis for coordinator notes |
+| Redis Cloud | Redis for caching and coordinator notes |
 
 ---
 
@@ -159,7 +156,7 @@ An AI-enabled volunteer management platform powered by AWS — using semantic ma
 Every tech choice in this project came from weighing real alternatives. Here is why I picked what I picked.
 
 **Why FastAPI over Spring Boot or Node.js?**
-Spring Boot is the enterprise standard for Java APIs, but the JVM overhead and verbose boilerplate make it overkill for a lightweight serverless project. Express.js with Node was tempting for its speed and simplicity, but I wanted Python for the AI/ML ecosystem — HuggingFace, sentence-transformers, and the Google Generative AI SDK all have first-class Python support. FastAPI gives you automatic request validation through Pydantic, auto-generated Swagger docs at `/docs`, and async support out of the box.
+Spring Boot is the enterprise standard for Java APIs, but the JVM overhead and verbose boilerplate make it overkill for a lightweight serverless project. Express.js with Node was tempting for its speed and simplicity, but I wanted Python for the AI/ML ecosystem - HuggingFace, sentence-transformers, and the Google Generative AI SDK all have first-class Python support. FastAPI gives you automatic request validation through Pydantic, auto-generated Swagger docs at `/docs`, and async support out of the box.
 
 **Why AWS Lambda over EC2, Railway, or Render?**
 I did not want to manage servers or pay for idle compute. Railway and Render are great for always-on apps, but Lambda scales to zero when nobody is using it, which is ideal for a demo project. The tradeoff is cold starts, but with a 16MB ZIP and Python 3.11, cold starts stay under 3 seconds. I also skipped API Gateway entirely and used Lambda Function URLs directly, which cuts latency and cost. I hated Render's cold starts of around 30 seconds, so I took the plunge and worked with Lambda for the first time for this project.
@@ -171,7 +168,7 @@ I considered running sentence-transformers locally, but that adds an 80MB+ model
 Pinecone and Weaviate are dedicated vector databases, but they add another service to manage and another bill to pay. FAISS is great for local search but does not persist data. pgvector lets me store vectors right next to my relational data in the same Supabase PostgreSQL database. One query can join volunteer metadata with vector similarity results. No separate vector store, no sync issues, no extra infrastructure.
 
 **Why Supabase over Firebase or raw PostgreSQL?**
-Firebase is NoSQL (Firestore), which is awkward for relational data like volunteers linked to activity logs. Raw PostgreSQL on RDS would work but requires managing connections, migrations, and auth separately. Supabase gives me PostgreSQL with pgvector, built-in JWT auth, row-level security, and a clean REST API, all managed. The auth integration alone saved me from building a whole authentication layer.
+Firebase is NoSQL (Firestore), which is awkward for relational data like volunteers linked to activity logs. Raw PostgreSQL on RDS would work but requires managing connections, migrations, and auth separately. Supabase gives me PostgreSQL with pgvector, built-in JWT auth, row-level security, and a clean REST API - all managed. The auth integration alone saved me from building a whole authentication layer.
 
 **Why Vercel over Netlify or self-hosting?**
 Next.js is built by the Vercel team, so the deployment experience is seamless. Netlify works fine for static sites but Next.js App Router with middleware and SSR runs best on Vercel. Zero-config deployment from a GitHub push was the deciding factor.
@@ -296,7 +293,7 @@ Lambda configuration:
 ## API Endpoints
 
 <details>
-<summary><strong>38 endpoints across 7 route modules plus system routes</strong> — click to expand</summary>
+<summary><strong>38 endpoints across 7 route modules plus system routes</strong> - click to expand</summary>
 
 ### System
 
@@ -354,7 +351,7 @@ Lambda configuration:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/chatbot/chat` | Send message to Gemini AI assistant |
+| POST | `/chatbot/chat` | Send message to AI assistant |
 | GET | `/chatbot/health` | Chatbot service availability |
 
 ### Notes (`/notes`)
