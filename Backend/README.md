@@ -58,11 +58,6 @@ powershell -ExecutionPolicy Bypass -File build_lambda_zip.ps1
 # Runtime: Python 3.11 | Handler: app.main.handler | Memory: 512 MB | Timeout: 30s
 ```
 
-## API
-
-38 endpoints across 7 route modules. See the root [README](../README.md#api-endpoints) or visit `/docs` when running.
-
----
 
 ## 🐛 Troubleshooting
 
