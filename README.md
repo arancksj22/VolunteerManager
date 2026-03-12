@@ -94,11 +94,11 @@ Made with :heart: by [Aranck Jomraj](https://github.com/arancksj22)
 
 ## Demo Video
 
-https://github.com/arancksj22/VolunteerManager/blob/main/DemoVideo%20-%20MissionMatch.mp4
-
 <div align="center">
 
-[![Watch on YouTube](https://img.shields.io/badge/Watch%20on-YouTube-red?logo=youtube&logoColor=white&style=for-the-badge)](https://www.youtube.com/watch?v=ROw_A9417CM)
+<a href="https://www.youtube.com/watch?v=ROw_A9417CM" target="_blank">
+  <img src="https://img.shields.io/badge/Watch%20on-YouTube-red?logo=youtube&logoColor=white&style=for-the-badge" alt="Watch on YouTube" />
+</a>
 
 </div>
 
