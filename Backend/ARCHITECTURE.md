@@ -1,340 +1,286 @@
-# 🏗️ VolunteerManager Backend Architecture
+# 🏗️ MissionMatch — System Architecture
 
 ## 📁 Complete File Structure
 
 ```
-Backend/
-├── 📄 BackendPRD                       # Original requirements
-├── 📄 README.md                        # Comprehensive documentation
-├── 📄 API_QUICK_REFERENCE.md          # Quick API reference
-├── 📄 FRONTEND_INTEGRATION_SPEC.md    # Frontend build guide
-├── 📄 ARCHITECTURE.md                 # This file
-├── 📄 SUPABASE_SETUP_CHECKLIST.md     # Database setup guide
+Backend/                                    (AWS Lambda — Python 3.11)
+├── requirements.txt                        # Python dependencies
+├── build_lambda_zip.ps1                    # Lambda deployment build script
 │
-├── ⚙️ Configuration Files
-│   ├── .env.example                    # Environment template
-│   ├── .gitignore                      # Git ignore rules
-│   └── requirements.txt                # Python dependencies (minimal!)
-│
-└── 📦 Application Code (app/)
-    ├── __init__.py                     # Package initialization
-    ├── main.py                         # 🚀 FastAPI application
-    ├── config.py                       # Settings & environment
-    ├── database.py                     # Supabase client
-    ├── embeddings.py                   # 🧠 HuggingFace API wrapper
-    ├── models.py                       # Pydantic schemas
+└── app/
+    ├── __init__.py
+    ├── main.py                             # FastAPI app + Mangum Lambda handler
+    ├── config.py                           # Pydantic Settings (env vars)
+    ├── database.py                         # Supabase client (singleton)
+    ├── embeddings.py                       # HuggingFace Inference API wrapper
+    ├── gemini.py                           # Google Gemini AI chatbot integration
+    ├── s3.py                              # Backblaze B2 (S3-compatible) file ops
+    ├── emails.py                          # Resend email service
+    ├── redisnotes.py                      # Redis-based notes CRUD
+    ├── models.py                          # Pydantic request/response schemas
+    ├── system_prompt.txt                  # Gemini chatbot system prompt
     │
     └── routes/
         ├── __init__.py
-        ├── volunteers.py               # 👥 Volunteer CRUD + health
-        ├── tasks.py                    # 📋 Task CRUD + matching
-        └── activities.py               # ⚡ Activity logging + scoring
+        ├── volunteers.py                  # Volunteer CRUD + health + embeddings
+        ├── tasks.py                       # Task CRUD + semantic matching (Routing Engine)
+        ├── activities.py                  # Activity logging + engagement scoring
+        ├── documents.py                   # Document upload/download/delete (B2)
+        ├── chatbot.py                     # AI assistant chat endpoint
+        ├── notes.py                       # Coordinator notes (Redis)
+        └── emails.py                      # Email send/templates (Resend)
+
+Frontend/volunteer-manager/                 (Vercel — Next.js 16)
+├── src/
+│   ├── middleware.ts                      # Supabase auth guard (coordinator routes)
+│   ├── app/
+│   │   ├── layout.tsx                     # Root layout + QueryProvider
+│   │   ├── page.tsx                       # Landing page
+│   │   ├── auth/callback/                 # Supabase OAuth callback
+│   │   ├── coordinator/                   # Protected coordinator dashboard
+│   │   │   ├── dashboard/                 # Stats overview
+│   │   │   ├── volunteers/               # Volunteer management
+│   │   │   ├── activities/               # Activity logs
+│   │   │   ├── campaigns/                # Campaign management
+│   │   │   ├── assistant/                # AI chatbot
+│   │   │   ├── documents/               # Document storage
+│   │   │   ├── notes/                    # Quick notes
+│   │   │   ├── emails/                   # Email campaigns
+│   │   │   └── login/                    # Coordinator login
+│   │   └── volunteer/                    # Volunteer-facing pages
+│   │       ├── dashboard/                # Volunteer dashboard
+│   │       ├── login/                    # Volunteer login
+│   │       └── signup/                   # Volunteer signup
+│   ├── lib/
+│   │   ├── api.ts                        # API client (all backend calls)
+│   │   ├── supabase.ts                   # Supabase browser client
+│   │   └── utils.ts                      # Helpers (formatting, health calc)
+│   ├── components/                       # UI components (shadcn/ui)
+│   ├── providers/query-provider.tsx       # TanStack Query provider
+│   └── types/index.ts                    # TypeScript interfaces
 ```
 
 ---
 
-## 🔄 System Architecture
+## 🧩 Component Details
 
+### 1. Frontend — Next.js 16 on Vercel
+
+| Component | Purpose |
+|-----------|---------|
+| `middleware.ts` | Supabase SSR auth guard — protects `/coordinator/*` routes, checks `role: coordinator` in JWT user_metadata |
+| `lib/api.ts` | Centralized API client — all 7 route groups with typed functions, uses `NEXT_PUBLIC_API_URL` env var |
+| `lib/supabase.ts` | Browser-side Supabase client for auth (login, signup, session) |
+| `providers/query-provider.tsx` | TanStack Query (React Query) — caching, refetching, mutation invalidation |
+| `components/ui/*` | shadcn/ui component library (30+ components) |
+| `types/index.ts` | Shared TypeScript interfaces (`Volunteer`, `Campaign`) |
+
+**Frontend → Backend:** All data flows through REST API calls in `lib/api.ts`  
+**Frontend → Supabase:** Only for authentication (login/signup/session — NOT data queries)
+
+---
+
+### 2. Backend — FastAPI on AWS Lambda
+
+#### Core Modules
+
+| Module | External Service | Purpose |
+|--------|-----------------|---------|
+| `main.py` | — | App init, CORS, global error handler, `/stats`, `/cron/daily-decay`, Mangum handler |
+| `config.py` | — | Pydantic Settings: loads 20+ env vars with defaults |
+| `database.py` | Supabase | Singleton Supabase client via `@lru_cache` |
+| `embeddings.py` | HuggingFace | `InferenceClient` for `all-MiniLM-L6-v2` (384-dim vectors) |
+| `gemini.py` | Google Gemini | `gemini-2.5-flash-lite` model + system prompt for AI chat |
+| `s3.py` | Backblaze B2 | boto3 S3 client with custom endpoint URL |
+| `emails.py` | Resend | Single + bulk email sending |
+| `redisnotes.py` | Upstash Redis | JSON notes CRUD with tag indexes, search, pin |
+| `models.py` | — | 15 Pydantic schemas for validation |
+
+#### Route Modules & Their Dependencies
+
+| Route File | Prefix | Uses | External Calls |
+|-----------|--------|------|----------------|
+| `routes/volunteers.py` | `/volunteers` | database, embeddings | Supabase (CRUD), HuggingFace (embed on create/update) |
+| `routes/tasks.py` | `/tasks` | database, embeddings, config | Supabase (CRUD + `match_volunteers` RPC), HuggingFace (embed on create) |
+| `routes/activities.py` | `/activities` | database, config | Supabase (insert log + update volunteer score) |
+| `routes/documents.py` | `/documents` | s3 | Backblaze B2 (upload/download/delete/list) |
+| `routes/chatbot.py` | `/chatbot` | gemini | Google Gemini API (chat completion) |
+| `routes/notes.py` | `/notes` | redisnotes | Upstash Redis (CRUD + search + tags) |
+| `routes/emails.py` | `/emails` | emails, database | Resend API (single + bulk send) |
+
+---
+
+### 3. External Services
+
+| Service | What It Does | Protocol | Module |
+|---------|-------------|----------|--------|
+| **Supabase** (PostgreSQL + pgvector) | Primary database — volunteers, tasks, activity_logs tables; `volunteer_retention_status` view; `match_volunteers()` RPC for cosine similarity | HTTPS (REST) | `database.py` |
+| **Supabase Auth** | User authentication — coordinator login, volunteer signup, JWT sessions, role-based access | HTTPS (REST) | Frontend `middleware.ts` + `lib/supabase.ts` |
+| **HuggingFace Inference API** | Text-to-vector embeddings — `sentence-transformers/all-MiniLM-L6-v2`, 384 dimensions | HTTPS (REST) | `embeddings.py` |
+| **Google Gemini** | AI chatbot — `gemini-2.5-flash-lite` for coordinator assistant with system prompt | HTTPS (REST) | `gemini.py` |
+| **Backblaze B2** | Document storage — S3-compatible object storage for PDF/DOCX/images | HTTPS (S3 API) | `s3.py` |
+| **Upstash Redis** | Coordinator notes — JSON key-value store with tag indexing and search | TLS (Redis) | `redisnotes.py` |
+| **Resend** | Email delivery — templated emails (welcome, reminder, thankyou, event) + custom HTML | HTTPS (REST) | `emails.py` |
+
+---
+
+### 4. Database Schema (Supabase)
+
+**Tables:**
+- `volunteers` — id, full_name, email, bio, skills[], embedding(384-dim), engagement_score, last_active_at, created_at
+- `tasks` — id, title, description, required_skills[], task_vector(384-dim), status, created_at
+- `activity_logs` — id, volunteer_id (FK), activity_type, points_awarded, created_at
+
+**View:**
+- `volunteer_retention_status` — Computed view: `health = engagement_score - (days_inactive × 2)`, status in (Healthy/Warning/At-Risk)
+
+**RPC Function:**
+- `match_volunteers(query_embedding, match_threshold, match_count)` — pgvector cosine similarity search against volunteer embeddings
+
+---
+
+## 🎯 Key Data Flows
+
+### 1. Volunteer Creation (Embedding Flow)
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Frontend (React)                       │
-│                  (Built from FRONTEND_SPEC)                 │
-│                                                             │
-│  • Supabase Auth for login/signup                          │
-│  • API calls to FastAPI backend (no auth headers)          │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│              FastAPI Backend (Python Server)                │
-│        (Railway / Render / Vercel / VPS)                    │
-│   ┌─────────────────────────────────────────────────────┐   │
-│   │              FastAPI Application                    │   │
-│   │                                                     │   │
-│   │  ┌──────────────┐  ┌──────────────┐  ┌──────────┐ │   │
-│   │  │ Volunteers   │  │    Tasks     │  │Activities│ │   │
-│   │  │   Routes     │  │   Routes     │  │  Routes  │ │   │
-│   │  └──────┬───────┘  └──────┬───────┘  └────┬─────┘ │   │
-│   │         │                 │                │       │   │
-│   │         └─────────────────┼────────────────┘       │   │
-│   │                           ▼                        │   │
-│   │              ┌─────────────────────────┐           │   │
-│   │              │   Embedding Engine      │           │   │
-│   │              │   (HuggingFace API)     │           │   │
-│   │              │  🧠 External Service    │           │   │
-│   │              └──────────┬──────────────┘           │   │
-│   │                         │                          │   │
-│   │                         ▼                          │   │
-│   │              ┌─────────────────────────┐           │   │
-│   │              │   Supabase Client       │           │   │
-│   │              │   (Database Layer)      │           │   │
-│   │              └─────────────────────────┘           │   │
-│   └─────────────────────────────────────────────────────┘   │
-└────────────┬───────────────────────┬────────────────────────┘
-             │                       │
-             ▼                       ▼
-┌──────────────────────┐  ┌─────────────────────────────────┐
-│  HuggingFace API     │  │   Supabase Database            │
-│  (Inference API)     │  │   (PostgreSQL + pgvector)       │
-│                      │  │                                 │
-│ • Free tier          │  │  ┌──────────────┐               │
-│ • No local model     │  │  │  volunteers  │               │
-│ • 384-dim vectors    │  │  │ • embedding  │               │
-│ • all-MiniLM-L6-v2   │  │  │   (384-dim)  │               │
-└──────────────────────┘  │  └──────────────┘               │
-                         │                                 │
-                         │  ┌──────────────┐               │
-                         │  │    tasks     │               │
-                         │  │ • task_vector│               │
-                         │  │   (384-dim)  │               │
-                         │  └──────────────┘               │
-                         │                                 │
-                         │  ┌─────────────────┐            │
-                         │  │ activity_logs   │            │
-                         │  │ • volunteer_id  │            │
-                         │  │ • points        │            │
-                         │  └─────────────────┘            │
-                         │                                 │
-                         │  ┌──────────────────────────┐   │
-                         │  │ match_volunteers() RPC   │   │
-                         │  │ (Cosine Similarity)      │   │
-                         │  └──────────────────────────┘   │
-                         │                                 │
-                         │  ┌──────────────────────────┐   │
-                         │  │ volunteer_retention_     │   │
-                         │  │ status VIEW              │   │
-                         │  └──────────────────────────┘   │
-                         └─────────────────────────────────┘
+Frontend → POST /volunteers → volunteers.py
+  → embeddings.py → HuggingFace API (text → 384-dim vector)
+  → database.py → Supabase INSERT (volunteer + embedding)
+  → Response with volunteer data
+```
+
+### 2. Task Matching / Routing Engine
+```
+Frontend → GET /tasks/{id}/matches → tasks.py
+  → database.py → Supabase SELECT task_vector
+  → database.py → Supabase RPC match_volunteers(vector, threshold, count)
+  → pgvector cosine similarity search
+  → Ranked volunteer list with similarity scores
+```
+
+### 3. Engagement Pulse (Activity Logging)
+```
+Frontend → POST /activities → activities.py
+  → database.py → Supabase INSERT activity_log
+  → database.py → Supabase UPDATE volunteer (score += points, last_active_at = now)
+```
+
+### 4. Retention Health Check
+```
+Frontend → GET /volunteers/health → volunteers.py
+  → database.py → Supabase SELECT from volunteer_retention_status VIEW
+  → View computes: score - (days_inactive × 2) → Healthy/Warning/At-Risk
+```
+
+### 5. Daily Engagement Decay (Cron)
+```
+External Cron → POST /cron/daily-decay → main.py
+  → database.py → Supabase SELECT all volunteers
+  → compute_decay() per volunteer (adaptive exponential: ceil(base × e^(k×days) × score/100))
+  → database.py → Supabase UPDATE each volunteer's engagement_score
+```
+
+### 6. AI Assistant Chat
+```
+Frontend → POST /chatbot/chat → chatbot.py
+  → gemini.py → Load system_prompt.txt + conversation history
+  → Google Gemini API (gemini-2.5-flash-lite)
+  → AI response string
+```
+
+### 7. Document Storage
+```
+Frontend → POST /documents/upload → documents.py
+  → s3.py → Backblaze B2 PUT (file bytes, namespaced by coordinator email)
+
+Frontend → GET /documents/download/{key} → documents.py
+  → s3.py → Backblaze B2 GET → StreamingResponse
+
+Frontend → GET /documents/list → documents.py
+  → s3.py → Backblaze B2 LIST (prefixed by coordinator email)
+```
+
+### 8. Coordinator Notes
+```
+Frontend → POST /notes → notes.py
+  → redisnotes.py → Redis SET (JSON note) + SADD (coordinator index + tag indexes)
+
+Frontend → GET /notes?coordinator_email=... → notes.py
+  → redisnotes.py → Redis SMEMBERS + GET → sorted notes list
+```
+
+### 9. Email Campaigns
+```
+Frontend → POST /emails/send-template → emails.py
+  → emails.py (module) → Resend API (templated HTML email)
+  → Template substitution: {name}, {message}, {event}
+```
+
+### 10. Authentication Flow
+```
+User → Vercel (Next.js) → middleware.ts
+  → Supabase Auth (getSession from cookie)
+  → Role check: user_metadata.role === 'coordinator'
+  → Allow/redirect based on auth state
 ```
 
 ---
 
-## 🎯 Core Features & Endpoints
+## 🔌 Complete API Endpoints
 
-### 1️⃣ **The Embedding Engine** 🧠
-**Module**: `app/embeddings.py`
-
-- Calls HuggingFace Inference API for embeddings
-- Model: `sentence-transformers/all-MiniLM-L6-v2`
-- Generates 384-dimensional vectors
-- **No local model** - lightweight and fast
-- Free tier friendly with optional API key for higher limits
-
-**Used by**:
-- `POST /volunteers` - Encode volunteer bio
-- `POST /tasks` - Encode task description
-
-**Benefits**:
-✅ No 80MB+ model download  
-✅ No GPU/CPU intensive processing  
-✅ Cold starts are instant  
-✅ Works perfectly for low-traffic applications
-
----
-
-### 2️⃣ **The Routing Engine** 🎯
-**Module**: `app/routes/tasks.py`
-
-- **Endpoint**: `GET /tasks/{id}/matches`
-- Semantic matching using cosine similarity
-- Calls Supabase `match_volunteers()` RPC
-- Returns ranked volunteers with similarity scores
-
-**Parameters**:
-- `match_threshold` (0.0-1.0): Minimum similarity
-- `match_count` (1-100): Max results
-
----
-
-### 3️⃣ **The Engagement Pulse** ⚡
-**Module**: `app/routes/activities.py`
-
-- **Endpoint**: `POST /activities`
-- Logs activity and awards points
-- Updates `engagement_score` in volunteers table
-- Updates `last_active_at` timestamp
-
-**Activity Types**:
-- `signup`: 10 points
-- `task_completion`: 50 points
-- `check_in`: 5 points
-- `custom`: Variable (must specify)
+| Endpoint | Method | Route Module | External Service |
+|----------|--------|-------------|-----------------|
+| `/` | GET | main.py | — |
+| `/health` | GET | main.py | Supabase |
+| `/info` | GET | main.py | — |
+| `/stats` | GET | main.py | Supabase |
+| `/cron/daily-decay` | POST | main.py | Supabase |
+| `/volunteers` | POST | volunteers.py | Supabase + HuggingFace |
+| `/volunteers` | GET | volunteers.py | Supabase |
+| `/volunteers/health` | GET | volunteers.py | Supabase (view) |
+| `/volunteers/{id}` | GET | volunteers.py | Supabase |
+| `/volunteers/{id}` | PATCH | volunteers.py | Supabase + HuggingFace |
+| `/volunteers/{id}` | DELETE | volunteers.py | Supabase |
+| `/tasks` | POST | tasks.py | Supabase + HuggingFace |
+| `/tasks` | GET | tasks.py | Supabase |
+| `/tasks/{id}` | GET | tasks.py | Supabase |
+| `/tasks/{id}/matches` | GET | tasks.py | Supabase (RPC) |
+| `/tasks/{id}/recommendations` | GET | tasks.py | Supabase (RPC) |
+| `/tasks/{id}` | PATCH | tasks.py | Supabase |
+| `/tasks/{id}` | DELETE | tasks.py | Supabase |
+| `/activities` | POST | activities.py | Supabase |
+| `/activities` | GET | activities.py | Supabase |
+| `/activities/volunteer/{id}` | GET | activities.py | Supabase |
+| `/activities/{id}` | GET | activities.py | Supabase |
+| `/activities/{id}` | DELETE | activities.py | Supabase |
+| `/documents/upload` | POST | documents.py | Backblaze B2 |
+| `/documents/list` | GET | documents.py | Backblaze B2 |
+| `/documents/download/{key}` | GET | documents.py | Backblaze B2 |
+| `/documents/{key}` | DELETE | documents.py | Backblaze B2 |
+| `/chatbot/chat` | POST | chatbot.py | Google Gemini |
+| `/chatbot/health` | GET | chatbot.py | — |
+| `/notes` | POST | notes.py | Redis |
+| `/notes` | GET | notes.py | Redis |
+| `/notes/search` | GET | notes.py | Redis |
+| `/notes/tags` | GET | notes.py | Redis |
+| `/notes/{id}` | PATCH | notes.py | Redis |
+| `/notes/{id}` | DELETE | notes.py | Redis |
+| `/notes/health` | GET | notes.py | Redis |
+| `/emails/send` | POST | emails.py | Resend |
+| `/emails/send-template` | POST | emails.py | Resend |
+| `/emails/templates` | GET | emails.py | — |
+| `/emails/health` | GET | emails.py | — |
 
 ---
 
-### 4️⃣ **Retention Intelligence** 📊
-**Module**: `app/routes/volunteers.py`
+## 🏛️ Deployment Architecture
 
-- **Endpoint**: `GET /volunteers/health`
-- Queries `volunteer_retention_status` view
-- Calculates: `health = score - (days_inactive × 2)`
-
-**Status Levels**:
-- `Healthy` (>70): Active and engaged ✅
-- `Warning` (40-70): Needs attention ⚠️
-- `At-Risk` (<40): About to churn 🚨
-
----
-
-## 🔌 API Endpoints Summary
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/` | GET | Health check |
-| `/health` | GET | Database health check |
-| `/info` | GET | System information |
-| `/volunteers` | POST | Create volunteer + embedding |
-| `/volunteers` | GET | List all volunteers |
-| `/volunteers/{id}` | GET | Get volunteer details |
-| `/volunteers/{id}` | PATCH | Update volunteer |
-| `/volunteers/{id}` | DELETE | Delete volunteer |
-| `/volunteers/health` | GET | Get retention status |
-| `/tasks` | POST | Create task + embedding |
-| `/tasks` | GET | List all tasks |
-| `/tasks/{id}` | GET | Get task details |
-| `/tasks/{id}/matches` | GET | **ROUTING ENGINE** 🎯 |
-| `/tasks/{id}/recommendations` | GET | Alias for matches |
-| `/tasks/{id}` | PATCH | Update task |
-| `/tasks/{id}` | DELETE | Delete task |
-| `/activities` | POST | **ENGAGEMENT PULSE** ⚡ |
-| `/activities` | GET | List activities |
-| `/activities/volunteer/{id}` | GET | Volunteer activity history |
-| `/activities/{id}` | GET | Get activity details |
-| `/activities/{id}` | DELETE | Delete activity |
-
----
-
-## 🔐 Environment Variables
-
-Required in `.env`:
-
-```bash
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-anon-key
-```
-
-Optional:
-```bash
-AWS_ACCESS_KEY_ID=for-s3-uploads
-AWS_SECRET_ACCESS_KEY=for-s3-uploads
-AWS_REGION=us-east-1
-REDIS_URL=redis://upstash-url
-ENVIRONMENT=development
-MODEL_CACHE_DIR=/tmp/model_cache
-MATCH_THRESHOLD=0.5
-DEFAULT_MATCH_COUNT=10
-```
-
----
-
-## 🚀 Deployment Options
-
-### **1. AWS Lambda** (Primary)
-```bash
-npm install
-serverless deploy
-```
-→ Serverless, auto-scaling, pay-per-request
-
-### **2. Docker** (Alternative)
-```bash
-docker-compose up
-```
-→ Container-based, portable
-
-### **3. Direct Python** (Local Dev)
-```bash
-python -m app.main
-```
-→ Fast iteration, hot-reload
-
----
-
-## 📊 Data Flow Examples
-
-### Creating a Volunteer
-```
-1. Client sends POST /volunteers with bio
-2. embeddings.py generates 384-dim vector
-3. database.py inserts to Supabase
-4. Returns volunteer with default score=100
-```
-
-### Matching Volunteers to Task
-```
-1. Client sends GET /tasks/{id}/matches
-2. Fetch task_vector from database
-3. Call match_volunteers(vector, threshold, count)
-4. Supabase performs cosine similarity search
-5. Returns ranked volunteers with scores
-```
-
-### Logging Activity
-```
-1. Client sends POST /activities
-2. Insert into activity_logs table
-3. Update volunteer.engagement_score += points
-4. Update volunteer.last_active_at = NOW()
-5. Returns activity log
-```
-
-### Checking Health
-```
-1. Client sends GET /volunteers/health
-2. Query volunteer_retention_status view
-3. View calculates: score - (days_inactive × 2)
-4. Returns list with health status
-```
-
----
-
-## 🧪 Testing Workflow
-
-1. **Setup**: `python setup.py`
-2. **Start Server**: `python -m app.main`
-3. **Run Tests**: `python test_api.py`
-4. **Manual Testing**: http://localhost:8000/docs
-
----
-
-## 💡 Key Design Decisions
-
-1. **Singleton Pattern**: Embedding model loaded once, reused
-2. **Mangum Wrapper**: Makes FastAPI compatible with Lambda
-3. **Pydantic Validation**: Type-safe request/response
-4. **RPC Functions**: Database logic stays in database
-5. **Time-Decay Scoring**: Passive churn detection
-6. **Vector Embeddings**: Semantic matching without keywords
-
----
-
-## 🎓 Learning Value
-
-This project demonstrates:
-- ✅ Full-stack CRUD operations
-- ✅ FastAPI best practices
-- ✅ Serverless architecture
-- ✅ Vector embeddings & semantic search
-- ✅ Database design (PostgreSQL + pgvector)
-- ✅ Business logic (scoring algorithms)
-- ✅ API design & documentation
-- ✅ Deployment strategies
-
----
-
-## 🔮 Future Enhancements
-
-- [ ] JWT authentication
-- [ ] Rate limiting with Redis
-- [ ] S3 integration for file uploads
-- [ ] EventBridge for scheduled re-engagement
-- [ ] WebSocket for real-time updates
-- [ ] GraphQL API option
-- [ ] Batch operations
-- [ ] Admin dashboard
-- [ ] Email notifications via Resend
-- [ ] AI chatbot for churn analysis
-
----
-
-**Built for AWS Lambda | Powered by FastAPI | Smart with SentenceTransformers**
+| Layer | Service | Details |
+|-------|---------|---------|
+| **Frontend** | Vercel (CDN + Edge) | Auto-deploy from GitHub `main` branch, root: `Frontend/volunteer-manager` |
+| **Backend** | AWS Lambda (eu-north-1) | Python 3.11, 512MB, 30s timeout, Function URL (no API Gateway), Mangum adapter |
+| **Database** | Supabase (managed PostgreSQL) | pgvector extension, Row Level Security, built-in Auth (JWT) |
+| **Storage** | Backblaze B2 (S3-compatible) | Bucket: `claritycheck`, region: us-east-005 |
+| **Cache** | Upstash Redis (serverless) | Notes storage with tag indexing |
+| **AI** | HuggingFace + Google Gemini | Pure API calls — no local models |
+| **Email** | Resend | Transactional email API with HTML templates |
