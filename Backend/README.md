@@ -88,39 +88,6 @@ powershell -ExecutionPolicy Bypass -File build_lambda_zip.ps1
 
 ---
 
-## 📈 Future Enhancements
+## Why AWS Lambda
 
-- [ ] **Redis caching** for frequently accessed data
-- [ ] **S3 integration** for volunteer document uploads
-- [ ] **EventBridge triggers** for automated re-engagement emails
-- [ ] **AI Coordinator Agent** for churn analysis
-- [ ] **Batch embedding** endpoint for bulk operations
-- [ ] **GraphQL API** option
-- [ ] **WebSocket** support for real-time updates
-- [ ] **Rate limiting** with Upstash Redis
-- [ ] **Authentication/Authorization** (JWT, API keys)
-
----
-
-## 📝 License
-
-This project is built for learning and demonstration purposes.
-
----
-
-## 🤝 Contributing
-
-This is a personal project, but suggestions are welcome!
-
----
-
-## 📬 Support
-
-For issues or questions:
-1. Check the troubleshooting section
-2. Review the API docs at `/docs`
-3. Verify your Supabase configuration
-
----
-
-**Built with ❤️ for making volunteer management smarter, not harder.**
+The backend runs on AWS Lambda with a Function URL (no API Gateway). Lambda scales to zero when idle, which keeps costs at zero for a demo project. The deployment ZIP is ~16 MB, and cold starts stay under 3 seconds with Python 3.11. Mangum adapts FastAPI's ASGI interface to Lambda's event handler, so the same codebase runs locally with uvicorn and in production on Lambda with no code changes.

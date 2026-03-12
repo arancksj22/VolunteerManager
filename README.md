@@ -420,6 +420,14 @@ Lambda configuration:
 
 ---
 
+## Possible Improvements
+
+- WebSocket support via API Gateway WebSocket APIs for real-time dashboard updates
+- Amazon SQS message queue to decouple email sending and embedding generation from request handling
+- Application Load Balancer with multiple Lambda targets for weighted traffic routing and blue/green deployments
+
+---
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
