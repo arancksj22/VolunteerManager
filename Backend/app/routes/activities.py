@@ -37,7 +37,7 @@ def get_points_for_activity(activity_type: str) -> int:
 
 
 @router.post(
-    "/",
+    "",
     response_model=ActivityLogResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Log volunteer activity (Engagement Pulse)"
@@ -128,7 +128,7 @@ async def log_activity(
 
 
 @router.get(
-    "/",
+    "",
     response_model=List[ActivityLogResponse],
     summary="Get all activity logs"
 )

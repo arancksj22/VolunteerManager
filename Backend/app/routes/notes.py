@@ -39,7 +39,7 @@ class NoteResponse(BaseModel):
     pinned: bool
 
 
-@router.post("/", response_model=NoteResponse)
+@router.post("", response_model=NoteResponse)
 async def create_note_endpoint(request: CreateNoteRequest):
     """Create a new note."""
     try:
@@ -53,7 +53,7 @@ async def create_note_endpoint(request: CreateNoteRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/", response_model=List[NoteResponse])
+@router.get("", response_model=List[NoteResponse])
 async def get_notes_endpoint(
     coordinator_email: str = Query(..., description="Coordinator's email"),
     tag: Optional[str] = Query(None, description="Filter by tag")

@@ -24,17 +24,12 @@ app = FastAPI(
     description="AI-native volunteer management platform with semantic matching and engagement tracking",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    redirect_slashes=False
 )
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Update with specific origins in production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS is handled by Lambda Function URL configuration
+# Do NOT add CORSMiddleware here to avoid duplicate headers
 
 
 # ============================================================================

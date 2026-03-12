@@ -21,7 +21,7 @@ router = APIRouter(prefix="/volunteers", tags=["Volunteers"])
 
 
 @router.post(
-    "/",
+    "",
     response_model=VolunteerResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new volunteer"
@@ -77,7 +77,7 @@ async def create_volunteer(
 
 
 @router.get(
-    "/",
+    "",
     response_model=List[VolunteerResponse],
     summary="List all volunteers"
 )

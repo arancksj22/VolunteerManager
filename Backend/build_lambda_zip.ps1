@@ -45,27 +45,84 @@ $ErrorActionPreference = "Continue"
 pip install -r requirements.txt -t "$buildDir" --quiet --no-cache-dir 2>&1 | Out-String | Write-Host
 $ErrorActionPreference = "Stop"
 
-# Step 2: Remove Windows-only compiled extensions (.pyd files)
-Write-Host "Removing Windows binaries..." -ForegroundColor Yellow
-Get-ChildItem $buildDir -Recurse -Filter "*.pyd" | Remove-Item -Force
-Write-Host "  Removed all .pyd files" -ForegroundColor DarkGray
+# Step 2: Replace Windows .pyd/.dll with Linux .so files
+# Auto-detect installed versions from dist-info directories, then fetch matching Linux binaries
+Write-Host "Detecting compiled package versions..." -ForegroundColor Yellow
+$linuxDir = ".\lambda_linux_bins"
+if (Test-Path $linuxDir) { Remove-Item -Recurse -Force $linuxDir }
+New-Item -ItemType Directory -Path $linuxDir | Out-Null
 
-# Step 3: Re-install compiled packages with Linux x86_64 binaries
-Write-Host "Installing Linux binaries for compiled packages..." -ForegroundColor Yellow
-$compiledPackages = @(
-    "pydantic_core", "charset_normalizer", "cffi", "cryptography",
-    "grpcio", "protobuf", "httptools", "watchfiles", "websockets",
-    "PyYAML", "aiohttp", "frozenlist", "multidict", "yarl",
-    "regex", "markupsafe", "propcache"
+# Packages known to have compiled C extensions
+$compiledNames = @(
+    "pydantic_core", "pydantic-core",
+    "charset_normalizer", "charset-normalizer",
+    "cffi",
+    "cryptography",
+    "grpcio",
+    "protobuf",
+    "httptools",
+    "watchfiles",
+    "websockets",
+    "PyYAML",
+    "regex",
+    "MarkupSafe", "markupsafe",
+    "aiohttp",
+    "frozenlist",
+    "multidict",
+    "yarl",
+    "propcache"
 )
-foreach ($pkg in $compiledPackages) {
+
+# Build list of "package==version" by reading dist-info folder names
+$distInfoDirs = Get-ChildItem $buildDir -Directory -Filter "*.dist-info"
+$packagesToFetch = @()
+foreach ($di in $distInfoDirs) {
+    # dist-info format: package_name-version.dist-info
+    if ($di.Name -match "^(.+?)-(\d+\..+?)\.dist-info$") {
+        $pkgName = $matches[1]
+        $pkgVersion = $matches[2]
+        # Normalize: replace underscores/hyphens for comparison
+        $normalized = $pkgName.ToLower() -replace "[_-]", ""
+        foreach ($compiled in $compiledNames) {
+            $compNorm = $compiled.ToLower() -replace "[_-]", ""
+            if ($normalized -eq $compNorm) {
+                $packagesToFetch += "$pkgName==$pkgVersion"
+                Write-Host "  Found $pkgName==$pkgVersion" -ForegroundColor DarkGray
+                break
+            }
+        }
+    }
+}
+
+Write-Host "Downloading Linux binaries..." -ForegroundColor Yellow
+foreach ($pkg in $packagesToFetch) {
     $ErrorActionPreference = "Continue"
-    $output = pip install $pkg -t "$buildDir" --quiet --no-cache-dir --platform manylinux2014_x86_64 --only-binary=:all: --python-version 3.11 --implementation cp --no-deps --upgrade 2>&1
+    pip install $pkg -t "$linuxDir" --quiet --no-cache-dir --platform manylinux2014_x86_64 --only-binary=:all: --python-version 3.11 --implementation cp --no-deps 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "  Replaced $pkg with Linux binary" -ForegroundColor DarkGray
+        Write-Host "  Downloaded $pkg" -ForegroundColor DarkGray
+    } else {
+        Write-Host "  Skipped $pkg (no Linux wheel)" -ForegroundColor DarkYellow
     }
     $ErrorActionPreference = "Stop"
 }
+
+# Remove all Windows .pyd files from build dir
+Write-Host "Replacing Windows binaries with Linux ones..." -ForegroundColor Yellow
+Get-ChildItem $buildDir -Recurse -Filter "*.pyd" | Remove-Item -Force
+
+# Copy all Linux .so files into the build dir, preserving relative paths
+Get-ChildItem $linuxDir -Recurse -Filter "*.so" | ForEach-Object {
+    $relPath = $_.FullName.Substring((Resolve-Path $linuxDir).Path.Length + 1)
+    $destPath = Join-Path $buildDir $relPath
+    $destDir = Split-Path $destPath -Parent
+    if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force | Out-Null }
+    Copy-Item $_.FullName $destPath -Force
+    Write-Host "  + $relPath" -ForegroundColor DarkGray
+}
+
+# Cleanup linux temp dir
+Remove-Item -Recurse -Force $linuxDir
+Write-Host "  Done replacing binaries" -ForegroundColor DarkGray
 
 # Remove boto3/botocore (already in Lambda runtime, saves ~80MB)
 $lambdaBuiltins = @("boto3", "botocore", "s3transfer", "urllib3")
