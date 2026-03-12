@@ -26,6 +26,8 @@ An AI-enabled volunteer management platform powered by AWS - using semantic matc
 
 **Live Demo: https://missionmatch.vercel.app/** - visit and go to Coordinator Login to explore the dashboard.
 
+Made with :heart: by [Aranck Jomraj](https://github.com/arancksj22)
+
 ---
 
 ## Table of Contents
@@ -40,6 +42,7 @@ An AI-enabled volunteer management platform powered by AWS - using semantic matc
 - [Environment Variables](#environment-variables)
 - [API Endpoints](#api-endpoints)
 - [Database Schema](#database-schema)
+- [Personal Note](#personal-note)
 - [License](#license)
 
 ---
@@ -91,11 +94,11 @@ An AI-enabled volunteer management platform powered by AWS - using semantic matc
 
 ## Demo Video
 
+https://github.com/arancksj22/VolunteerManager/blob/main/DemoVideo%20-%20MissionMatch.mp4
+
 <div align="center">
 
-[![MissionMatch Demo](https://img.shields.io/badge/Watch%20Demo-YouTube-red?logo=youtube&logoColor=white&style=for-the-badge)](https://youtube.com)
-
-<!-- Replace the link above with your actual demo video URL -->
+[![Watch on YouTube](https://img.shields.io/badge/Watch%20on-YouTube-red?logo=youtube&logoColor=white&style=for-the-badge)](https://www.youtube.com/watch?v=ROw_A9417CM)
 
 </div>
 
@@ -422,9 +425,19 @@ Lambda configuration:
 
 ## Possible Improvements
 
-- WebSocket support via API Gateway WebSocket APIs for real-time dashboard updates
+- WebSocket support via API Gateway WebSocket APIs for real-time chatting
 - Amazon SQS message queue to decouple email sending and embedding generation from request handling
-- Application Load Balancer with multiple Lambda targets for weighted traffic routing and blue/green deployments
+- Application Load Balancer with multiple Lambda targets for weighted traffic routing
+
+---
+
+## Personal Note
+
+This past week has been an absolute blast. I genuinely wanted to explore this problem space using production grade tools, and the journey exceeded my expectations. Switching to AWS Lambda as my backend host turned out to be one of the best decisions. After dealing with Render's 30 second cold starts on the free tier, Lambda's sub 3 second startups and zero idle cost felt like a massive upgrade.
+
+The hours of configuring, debugging, and wrestling with AWS were completely worth it when everything finally clicked into a working infrastructure. Seeing volunteer matching come to life, especially the semantic search and the engagement decay algorithm, was incredibly rewarding to build and explore. I also got to work with Redis caching for the first time, hosting it as a live service rather than just running it locally.
+
+Putting together the architecture diagram made me step back and realize just how much ground this project covers. I am grateful for being assigned this project and all of its tasks. Watching everything come together into a cohesive, functioning platform has been one of the most fulfilling engineering experiences I have had.
 
 ---
 

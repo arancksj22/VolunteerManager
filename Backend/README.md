@@ -91,3 +91,91 @@ powershell -ExecutionPolicy Bypass -File build_lambda_zip.ps1
 ## Why AWS Lambda
 
 The backend runs on AWS Lambda with a Function URL (no API Gateway). Lambda scales to zero when idle, which keeps costs at zero for a demo project. The deployment ZIP is ~16 MB, and cold starts stay under 3 seconds with Python 3.11. Mangum adapts FastAPI's ASGI interface to Lambda's event handler, so the same codebase runs locally with uvicorn and in production on Lambda with no code changes.
+
+---
+
+## All Endpoints
+
+38 endpoints across 7 route modules plus system routes.
+
+### System
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Health check |
+| GET | `/health` | Database connectivity check |
+| GET | `/info` | System information |
+| GET | `/stats` | Dashboard aggregate statistics |
+| POST | `/cron/daily-decay` | Daily engagement decay (external cron) |
+
+### Volunteers (`/volunteers`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/volunteers` | Create volunteer + generate embedding |
+| GET | `/volunteers` | List all volunteers (paginated) |
+| GET | `/volunteers/health` | Retention health status (view query) |
+| GET | `/volunteers/{id}` | Get volunteer by ID |
+| PATCH | `/volunteers/{id}` | Update volunteer (re-embeds if bio/skills change) |
+| DELETE | `/volunteers/{id}` | Delete volunteer |
+
+### Tasks (`/tasks`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/tasks` | Create task + generate embedding |
+| GET | `/tasks` | List all tasks (filterable by status) |
+| GET | `/tasks/{id}` | Get task by ID |
+| GET | `/tasks/{id}/matches` | Semantic volunteer matching (Routing Engine) |
+| GET | `/tasks/{id}/recommendations` | Alias for matches |
+| PATCH | `/tasks/{id}` | Update task |
+| DELETE | `/tasks/{id}` | Delete task |
+
+### Activities (`/activities`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/activities` | Log activity + update engagement score |
+| GET | `/activities` | List all activity logs |
+| GET | `/activities/volunteer/{id}` | Activity history for a volunteer |
+| GET | `/activities/{id}` | Get specific activity log |
+| DELETE | `/activities/{id}` | Delete activity log |
+
+### Documents (`/documents`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/documents/upload` | Upload file to AWS S3 |
+| GET | `/documents/list` | List coordinator documents |
+| GET | `/documents/download/{key}` | Download file (streaming) |
+| DELETE | `/documents/{key}` | Delete file |
+
+### Chatbot (`/chatbot`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/chatbot/chat` | Send message to AI assistant |
+| GET | `/chatbot/health` | Chatbot service availability |
+
+### Notes (`/notes`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/notes` | Create note (Redis) |
+| GET | `/notes` | Get coordinator notes (filterable by tag) |
+| GET | `/notes/search` | Search notes by content |
+| GET | `/notes/tags` | Get all tags for a coordinator |
+| PATCH | `/notes/{id}` | Update note |
+| DELETE | `/notes/{id}` | Delete note |
+| GET | `/notes/health` | Redis connection health |
+
+### Emails (`/emails`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/emails/send` | Send custom HTML email |
+| POST | `/emails/send-template` | Send templated email (welcome/reminder/thankyou/event) |
+| GET | `/emails/templates` | List available templates |
+| GET | `/emails/health` | Email service configuration status |
+
+> Full endpoint documentation with request/response schemas available at `/docs` (Swagger UI) when the backend is running.
