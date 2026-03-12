@@ -24,7 +24,7 @@
 
 An AI-enabled volunteer management platform powered by AWS - using semantic matching and behavioral analytics to help nonprofit coordinators recruit, retain, and re-engage volunteers before they churn.
 
-**[Live Demo](https://missionmatch.vercel.app/)** - visit and go to Coordinator Login to explore the dashboard.
+**Live Demo: https://missionmatch.vercel.app/** - visit and go to Coordinator Login to explore the dashboard.
 
 ---
 

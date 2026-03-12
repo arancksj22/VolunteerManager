@@ -1,382 +1,66 @@
-# 🚀 VolunteerManager Backend API
+# MissionMatch Backend
 
-**AI-native volunteer management platform** with semantic matching, engagement tracking, and retention intelligence.
+FastAPI backend for MissionMatch - deployed on AWS Lambda with Python 3.11.
 
-## 🏗️ Tech Stack
+## Tech Stack
 
-- **Backend Framework**: FastAPI (Python 3.10+)
-- **Database**: Supabase (PostgreSQL + pgvector)
-- **ML/AI**: SentenceTransformer via HuggingFace API (external, no local model)
-- **Deployment**: AWS Lambda (free tier) OR simple Python hosting (Railway, Render, Vercel)
+- **FastAPI 0.109** - ASGI web framework with auto-generated Swagger docs
+- **Supabase** - PostgreSQL + pgvector + Auth
+- **HuggingFace Inference API** - Text embeddings (all-MiniLM-L6-v2, 384 dimensions)
+- **Google Generative AI** - AI chatbot assistant
+- **Redis** - Caching and coordinator notes
+- **Resend** - Transactional email API
+- **AWS S3** - Document storage
+- **Mangum** - ASGI adapter for AWS Lambda
 
-## ✨ Features
-
-### 🧠 **The Embedding Engine**
-- Generates 384-dimensional semantic embeddings via HuggingFace API
-- Uses `sentence-transformers/all-MiniLM-L6-v2` model (hosted by HuggingFace)
-- Zero local dependencies - lightweight and fast!
-- **Free tier friendly**: No model loading, no large downloads
-
-### 🎯 **The Routing Engine**
-- Semantic matching of volunteers to tasks using cosine similarity
-- No keyword dependency - matches based on meaning
-- Adjustable threshold and match count
-
-### 📊 **The Engagement Pulse**
-- Activity-based scoring system
-- Time-decay algorithm for retention health
-- Automated tracking of volunteer engagement
-
-### ⚠️ **Retention Intelligence**
-- Real-time health status view
-- Flags "At-Risk" volunteers before they churn
-- Three-tier system: Healthy, Warning, At-Risk
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
-Backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI application
-│   ├── config.py            # Settings & environment variables
-│   ├── database.py          # Supabase client
-│   ├── embeddings.py        # HuggingFace API wrapper
-│   ├── models.py            # Pydantic schemas
-│   └── routes/
-│       ├── __init__.py
-│       ├── volunteers.py    # Volunteer CRUD + health
-│       ├── tasks.py         # Task CRUD + matching
-│       └── activities.py    # Activity logging + scoring
-├── requirements.txt         # Minimal dependencies
-├── .env.example
-└── README.md
+app/
+├── main.py            # FastAPI app, CORS, Mangum handler, system routes
+├── config.py          # Pydantic Settings (env vars)
+├── database.py        # Supabase client
+├── embeddings.py      # HuggingFace Inference API wrapper
+├── gemini.py          # Google Generative AI client
+├── s3.py              # S3-compatible storage client
+├── emails.py          # Resend email service (4 HTML templates)
+├── redisnotes.py      # Redis notes client
+├── models.py          # Pydantic request/response schemas
+├── system_prompt.txt  # AI assistant system prompt
+└── routes/
+    ├── volunteers.py  # CRUD + health + embeddings
+    ├── tasks.py       # CRUD + semantic matching
+    ├── activities.py  # Activity logging + score updates
+    ├── documents.py   # File upload/download (S3)
+    ├── chatbot.py     # AI assistant conversations
+    ├── notes.py       # Redis-backed notes CRUD
+    └── emails.py      # Email sending + templates
 ```
 
----
-
-## 🚀 Quick Start
-
-### 1. **Prerequisites**
-
-- Python 3.10+
-- Supabase account (free tier works!)
-- HuggingFace account (free API, optional token for higher rate limits)
-
-### 2. **Clone & Setup**
+## Run Locally
 
 ```bash
-# Navigate to the backend directory
 cd Backend
-
-# Create virtual environment
 python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# Mac/Linux:
-source venv/bin/activate
-
-# Install dependencies
+venv\Scripts\activate        # Windows
 pip install -r requirements.txt
-```
 
-### 3. **Configure Environment**
-
-```bash
-# Copy the example env file
-cp .env.example .env
-
-# Edit .env with your credentials:
-# SUPABASE_URL=https://your-project.supabase.co
-# SUPABASE_KEY=your-anon-key
-# HUGGINGFACE_API_KEY=hf_xxxxx (optional, get from huggingface.co/settings/tokens)
-```
-
-**Note**: HuggingFace API works WITHOUT a key (with rate limits). For production, get a free API token from https://huggingface.co/settings/tokens
-
-### 4. **Run Locally**
-
-```bash
-# Start the development server
+# Create .env with your credentials (see root README for all variables)
 python -m app.main
-
-# Or use uvicorn directly
-uvicorn app.main:app --reload --port 8000
+# Swagger docs at http://localhost:8000/docs
 ```
 
-**API Documentation**: http://localhost:8000/docs 📖
-
----
-
-## 🌐 Deployment Options
-
-Choose your deployment strategy based on your needs:
-
-### **Option 1: AWS Lambda** (Recommended - 100% FREE)
-
-**Best for**: Variable traffic, zero cost, automatic scaling
-
-- ✅ **FREE TIER**: 1 million requests/month forever
-- ✅ **1-3 second cold starts** (20-30x faster than Render free tier)
-- ✅ **Auto-scales** from 0 to thousands of requests
-- ✅ **No idle costs** - pay only when running
-
-**Deploy in 3 commands:**
-```bash
-npm install -g serverless
-serverless deploy
-```
-
-**📖 Full guide**: See [LAMBDA_DEPLOYMENT_GUIDE.md](LAMBDA_DEPLOYMENT_GUIDE.md)
-
----
-
-### **Option 2: Railway** (Simple, Always-On)
-
-**Best for**: Consistent traffic, prefer simplicity
-
-- 💰 **Cost**: $0-5/month
-- ✅ **No cold starts**
-- ✅ **Easiest deployment**
-
-1. Create account at railway.app
-2. Connect GitHub repo
-3. Add environment variables (SUPABASE_URL, SUPABASE_KEY, HUGGINGFACE_API_KEY)
-4. Deploy! Railway auto-detects Python
-
-### **Option 2: Render**
-1. Create account at render.com
-2. New Web Service → Connect repo
-3. Build: `pip install -r requirements.txt`
-4. Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Add environment variables
-
-### **Option 3: Vercel** (with Python runtime)
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run `vercel` in project directory
-3. Add environment variables in dashboard
-
-### **Option 4: Traditional VPS**
-- Run with gunicorn: `gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker`
-- Use nginx as reverse proxy
-- Deploy with systemd service
-
----
-
-## 🗄️ Database Setup
-
-Already complete! The PRD indicates you've run these SQL commands in Supabase:
-
-✅ Enabled `pgvector` extension  
-✅ Created `volunteers` table with 384-dim embedding  
-✅ Created `tasks` table with task_vector  
-✅ Created `activity_logs` table  
-✅ Created `match_volunteers()` RPC function  
-✅ Created `volunteer_retention_status` view
-
-If you need to reset or verify, check the SQL scripts in your Supabase SQL Editor.
-
----
-
-## 📡 API Endpoints
-
-### **System**
-- `GET /` - Health check
-- `GET /health` - Database health check
-- `GET /info` - System information
-
-### **Volunteers** (`/volunteers`)
-- `POST /volunteers` - Create volunteer (generates embedding)
-- `GET /volunteers` - List all volunteers
-- `GET /volunteers/health` - Get retention health status
-- `GET /volunteers/{id}` - Get specific volunteer
-- `PATCH /volunteers/{id}` - Update volunteer
-- `DELETE /volunteers/{id}` - Delete volunteer
-
-### **Tasks** (`/tasks`)
-- `POST /tasks` - Create task (generates embedding)
-- `GET /tasks` - List all tasks
-- `GET /tasks/{id}` - Get specific task
-- `GET /tasks/{id}/matches` - **ROUTING ENGINE** - Find matching volunteers
-- `GET /tasks/{id}/recommendations` - Alias for matches
-- `PATCH /tasks/{id}` - Update task
-- `DELETE /tasks/{id}` - Delete task
-
-### **Activities** (`/activities`)
-- `POST /activities` - **ENGAGEMENT PULSE** - Log activity & update score
-- `GET /activities` - List all activities
-- `GET /activities/volunteer/{id}` - Get volunteer's activity history
-- `GET /activities/{id}` - Get specific activity
-- `DELETE /activities/{id}` - Delete activity log
-
----
-
-## 🎯 Key Workflows
-
-### **1. Create a Volunteer**
-```bash
-POST /volunteers
-{
-  "full_name": "Jane Doe",
-  "email": "jane@example.com",
-  "bio": "Passionate about community outreach and education",
-  "skills": ["public speaking", "event planning"]
-}
-```
-→ Returns volunteer with auto-generated 384-dim embedding
-
-### **2. Create a Task**
-```bash
-POST /tasks
-{
-  "title": "Weekend Food Drive",
-  "description": "Help organize and run a community food distribution event",
-  "required_skills": ["logistics", "people skills"],
-  "status": "open"
-}
-```
-→ Returns task with semantic embedding
-
-### **3. Find Matching Volunteers** (The Magic! ✨)
-```bash
-GET /tasks/{task_id}/matches?match_threshold=0.5&match_count=10
-```
-→ Returns ranked list of volunteers with similarity scores
-
-### **4. Log Activity & Update Score**
-```bash
-POST /activities
-{
-  "volunteer_id": "uuid-here",
-  "activity_type": "task_completion",
-  "points_awarded": 50
-}
-```
-→ Increments engagement_score and updates last_active_at
-
-### **5. Check Retention Health**
-```bash
-GET /volunteers/health?status_filter=At-Risk
-```
-→ Returns volunteers flagged as "At-Risk" for churn
-
----
-
-## ☁️ AWS Lambda Deployment
-
-### **Option 1: Serverless Framework** (Recommended)
+## Deploy to Lambda
 
 ```bash
-# Install Serverless Framework
-npm install -g serverless
-
-# Install plugins
-npm install --save-dev serverless-python-requirements serverless-offline
-
-# Configure AWS credentials
-serverless config credentials --provider aws --key YOUR_KEY --secret YOUR_SECRET
-
-# Deploy to AWS
-serverless deploy --stage prod
-
-# Check logs
-serverless logs -f api --stage prod --tail
+powershell -ExecutionPolicy Bypass -File build_lambda_zip.ps1
+# Upload lambda-deploy.zip to AWS Lambda
+# Runtime: Python 3.11 | Handler: app.main.handler | Memory: 512 MB | Timeout: 30s
 ```
 
-### **Option 2: Manual Lambda Deployment**
+## API
 
-1. **Package your application**:
-   ```bash
-   pip install -r requirements.txt -t package/
-   cp -r app package/
-   cd package && zip -r ../deployment.zip . && cd ..
-   ```
-
-2. **Upload to AWS Lambda**:
-   - Create a Lambda function in AWS Console
-   - Set runtime to Python 3.10
-   - Set handler to `app.main.handler`
-   - Upload `deployment.zip`
-   - Add environment variables from `.env`
-   - Set memory to 1024MB+ (for model loading)
-   - Set timeout to 30 seconds
-
-3. **Add API Gateway**:
-   - Create HTTP API
-   - Add `ANY /{proxy+}` route
-   - Point to your Lambda function
-
----
-
-## 🔥 Lambda Optimization Tips
-
-### **Model Caching** (Critical!)
-The embedding model is ~80MB. To avoid downloading it every cold start:
-
-1. **Use /tmp cache**: Already configured in `embeddings.py`
-2. **Package model with deployment**: Download model locally and include in zip
-   ```bash
-   python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', cache_folder='./model_cache')"
-   ```
-3. **Use EFS** (overkill for this project): Mount EFS volume to Lambda
-
-### **Keep Lambda Warm**
-- Use **Provisioned Concurrency** (costs money but eliminates cold starts)
-- Use **CloudWatch Events** to ping your API every 5 minutes
-- Use a service like **Lambda Warmer**
-
----
-
-## 🧪 Testing
-
-### **Manual Testing**
-Use the interactive docs at `/docs` or tools like:
-- **Postman**
-- **Insomnia**
-- **curl**
-- **HTTPie**
-
-Example:
-```bash
-# Create a volunteer
-curl -X POST http://localhost:8000/volunteers \
-  -H "Content-Type: application/json" \
-  -d '{"full_name":"John Doe","email":"john@test.com","bio":"Loves helping people"}'
-
-# Get health status
-curl http://localhost:8000/volunteers/health
-```
-
-### **Automated Testing** (TODO)
-```bash
-# Install pytest
-pip install pytest pytest-asyncio httpx
-
-# Run tests
-pytest tests/
-```
-
----
-
-## 🔐 Environment Variables
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `SUPABASE_URL` | Your Supabase project URL | ✅ Yes | - |
-| `SUPABASE_KEY` | Your Supabase anon key | ✅ Yes | - |
-| `AWS_ACCESS_KEY_ID` | AWS credentials (for S3) | ❌ No | - |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key | ❌ No | - |
-| `AWS_REGION` | AWS region | ❌ No | us-east-1 |
-| `AWS_S3_BUCKET` | S3 bucket for uploads | ❌ No | - |
-| `REDIS_URL` | Upstash Redis URL | ❌ No | - |
-| `ENVIRONMENT` | Environment name | ❌ No | development |
-| `MODEL_CACHE_DIR` | Model cache directory | ❌ No | /tmp/model_cache |
-| `MATCH_THRESHOLD` | Minimum similarity score | ❌ No | 0.5 |
-| `DEFAULT_MATCH_COUNT` | Default results to return | ❌ No | 10 |
+38 endpoints across 7 route modules. See the root [README](../README.md#api-endpoints) or visit `/docs` when running.
 
 ---
 

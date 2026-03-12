@@ -1,169 +1,58 @@
 # MissionMatch Frontend
 
-AI-powered volunteer management platform for animal advocacy organizations. Built with Next.js 14, shadcn/ui, and TypeScript.
+Next.js frontend for MissionMatch - deployed on Vercel.
 
-## 🚀 Tech Stack
+**Live:** https://missionmatch.vercel.app/
 
-- **Framework**: Next.js 14.x (App Router)  
-- **Language**: TypeScript
-- **UI Components**: shadcn/ui (Radix UI + Tailwind CSS)
-- **Styling**: Tailwind CSS v4
-- **State Management**: TanStack Query (React Query) v5
-- **Forms**: React Hook Form + Zod validation
-- **Authentication**: Supabase Auth
-- **Icons**: Lucide React
-- **Date**: date-fns
-- **Animations**: Framer Motion
+## Tech Stack
 
-## 🏃 Getting Started
+- **Next.js 16** - App Router, SSR, middleware
+- **React 19** - UI library
+- **TypeScript 5** - Type safety
+- **Tailwind CSS 4** - Utility-first styling
+- **shadcn/ui** - 30+ accessible UI components (Radix primitives)
+- **Supabase SSR** - Auth middleware (JWT session management)
 
-### Prerequisites
-- Node.js 18+
-- Backend API running on `http://localhost:8000`
-- (Optional) Supabase project for authentication
-
-### Installation
-
-```bash
-# Install dependencies
-npm install
-
-# Configure environment variables
-cp .env.example .env.local
-# Edit .env.local with your values
-
-# Run development server
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000)
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── coordinator/      # Admin portal (dashboard, volunteers, campaigns, etc.)
-│   ├── volunteer/        # Public portal (signup, login, browse campaigns)
-│   ├── page.tsx          # Public home page
-│   └── layout.tsx        # Root layout with providers
-├── components/           # React components (shadcn/ui + custom)
-├── lib/                  # Utilities (api.ts, supabase.ts, utils.ts)
-├── providers/            # React context providers
-└── types/                # TypeScript types
+│   ├── coordinator/         # Protected dashboard routes
+│   │   ├── dashboard/       # Main dashboard with metrics
+│   │   ├── volunteers/      # Volunteer list + search
+│   │   ├── activities/      # Activity logging
+│   │   ├── campaigns/       # Campaigns + AI matching
+│   │   ├── assistant/       # AI chatbot
+│   │   ├── documents/       # File management
+│   │   ├── emails/          # Email campaigns
+│   │   └── notes/           # Coordinator notes
+│   ├── volunteer/           # Public volunteer portal
+│   │   ├── signup/          # Registration
+│   │   ├── login/           # Authentication
+│   │   └── dashboard/       # Volunteer dashboard
+│   └── page.tsx             # Landing page
+├── components/              # Reusable UI components
+├── lib/                     # API client, Supabase client, utilities
+├── providers/               # React context providers
+└── types/                   # TypeScript type definitions
 ```
 
-## 🎯 Key Features Built
+## Run Locally
 
-### ✅ Coordinator Portal
-- Dashboard with key metrics and health distribution
-- Volunteer management (list, search, filter by status)
-- Campaign management
-- **AI-powered volunteer matching** (star feature!)
-- Health monitoring with at-risk alerts
+```bash
+cd Frontend/volunteer-manager
+npm install
 
-### ✅ Volunteer Portal
-- Public home page with movement stats
-- Volunteer signup form (no auth required)
-- Campaign preview cards
+# Create .env.local with:
+# NEXT_PUBLIC_API_URL=http://localhost:8000
+# NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
-### ✅ Design System
-- Custom Tailwind theme with HSL colors
-- Color-coded health statuses (Healthy, Warning, At-Risk)
-- Visual engagement indicators (progress bars)
-- Hover states and smooth transitions
-- Inter font family
+npm run dev
+# Available at http://localhost:3000
+```
 
-### ✅ Technical Setup
-- TanStack Query for API state management
-- Zod + React Hook Form for form validation
-- Supabase client configuration
-- API client with typed endpoints
-- Helper functions for dates, colors, formatting
+## Auth
 
-## 🔑 Two Portal System
-
-### Coordinator Portal (`/coordinator/*`)
-Admin dashboard for managing volunteers and campaigns. Requires authentication.
-
-**Routes**:
-- `/coordinator/dashboard` - Main dashboard
-- `/coordinator/volunteers` - Volunteer list with search/filters
-- `/coordinator/campaigns` - Campaign list
-- `/coordinator/campaigns/[id]` - AI matching page ⭐
-- `/coordinator/health` - Health monitoring report
-- `/coordinator/activities` - Activity logs
-
-### Volunteer Portal (`/volunteer/*` & `/`)
-Public-facing portal for volunteers.
-
-**Routes**:
-- `/` - Public home page
-- `/volunteer/signup` - Registration form
-- `/volunteer/login` - Authentication
-- `/volunteer/dashboard` - Personal dashboard
-- `/volunteer/campaigns` - Browse campaigns
-
-## 🎨 Design Principles
-
-Following `FRONTEND_DESIGN_PRINCIPLES.md`:
-
-- ✅ Warm, approachable colors (not generic blue)
-- ✅ Visual hierarchy with intentional typography
-- ✅ Consistent spacing (p-6 for cards, space-y-6 for sections)
-- ✅ Color-coded health statuses
-- ✅ Hover states on all interactive elements
-- ✅ Loading skeletons and empty states
-- ✅ Real content (no lorem ipsum)
-
-## 🔧 API Integration
-
-Base URL: `http://localhost:8000` (configured in `.env.local`)
-
-**Key endpoints**:
-- `GET /volunteers` - List volunteers
-- `POST /volunteers` - Create volunteer
-- `GET /tasks` - List campaigns (called "tasks" in backend)
-- `GET /tasks/{id}/match` - AI matching ⭐
-- `GET /stats` - Dashboard statistics
-- `POST /activities` - Log activities
-
-## 📦 Next Steps
-
-The foundation is built! Here's what to add next:
-
-1. **Create Campaign Form** - `/coordinator/campaigns/new`
-2. **Add Volunteer Form** - `/coordinator/volunteers/new`
-3. **Volunteer Detail Page** - `/coordinator/volunteers/[id]`
-4. **Health Report Page** - `/coordinator/health`
-5. **Activity Logs** - `/coordinator/activities`
-6. **Volunteer Dashboard** - `/volunteer/dashboard`
-7. **Login Pages** - Implement Supabase Auth UI
-8. **Email Functionality** - Connect email buttons
-9. **Campaign Detail** - `/volunteer/campaigns/[id]`
-10. **Dark Mode** - Add theme toggle
-
-## 🐛 Troubleshooting
-
-**"Failed to fetch" errors:**
-- Ensure backend API is running on `localhost:8000`
-- Check CORS is enabled on backend
-- Verify `NEXT_PUBLIC_API_URL` in `.env.local`
-
-**Styles not applying:**
-- Restart dev server after changing `globals.css`
-- Check Tailwind v4 syntax
-
-**Supabase auth issues:**
-- Verify environment variables
-- Check redirect URLs in Supabase dashboard
-
-## 💚 Built for Animals
-
-This platform helps animal advocacy organizations prevent volunteer burnout and maximize impact for animals.
-
----
-
-For detailed specs, see:
-- `FRONTEND_DESIGN_PRINCIPLES.md` - Design guidelines
-- `FRONTEND_INTEGRATION_SPEC.md` - Complete feature specs
+Supabase Auth with JWT sessions. Next.js middleware protects all `/coordinator/*` routes - only users with `role: coordinator` in user_metadata can access the dashboard.
