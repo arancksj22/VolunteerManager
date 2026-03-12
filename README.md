@@ -27,7 +27,7 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 - [Tech Stack](#tech-stack)
 - [Demo Video](#demo-video)
 - [Features](#features)
-- [System Architecture](#system-architecture)
+- [Thought Process and Tradeoffs](#thought-process-and-tradeoffs)
 - [Getting Started](#getting-started)
 - [Deployment](#deployment)
 - [Environment Variables](#environment-variables)
@@ -41,7 +41,7 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 
 <div align="center">
 
-<img src="docs/architecture-diagram.png" alt="MissionMatch Architecture Diagram" width="800" />
+<img src="MissionMatchFinalArchitecture.png" alt="MissionMatch Architecture Diagram" width="800" />
 
 </div>
 
@@ -58,10 +58,7 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 | TypeScript 5 | Type safety |
 | Tailwind CSS 4 | Utility-first styling |
 | shadcn/ui | 30+ accessible UI components (Radix primitives) |
-| TanStack Query 5 | Server state management, caching, mutations |
-| Framer Motion | Scroll animations and transitions |
-| Recharts | Dashboard charts and visualizations |
-| React Hook Form + Zod | Form validation |
+
 | Supabase SSR | Auth middleware (JWT session management) |
 
 ### Backend
@@ -69,13 +66,10 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 | Technology | Purpose |
 |-----------|---------|
 | FastAPI 0.109 | Python ASGI web framework |
-| Mangum 0.17 | ASGI-to-Lambda adapter |
-| Pydantic 2.5 | Request/response validation (15 schemas) |
 | Supabase Python 2.3 | Database client (PostgreSQL + pgvector) |
 | HuggingFace Hub | Inference API client for embeddings |
-| Google Generative AI | Gemini 2.5 Flash Lite chatbot |
-| Boto3 | S3-compatible storage client (Backblaze B2) |
-| Redis | Serverless notes storage (Upstash) |
+| Google Generative AI | AI chatbot |
+| Redis | Notes storage (Redis Cloud) |
 | Resend | Transactional email API |
 
 ### Infrastructure
@@ -85,11 +79,10 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 | AWS Lambda (eu-north-1) | Serverless backend hosting (Function URL, no API Gateway) |
 | Vercel | Frontend CDN and edge deployment |
 | Supabase | Managed PostgreSQL + pgvector + Auth (JWT) |
-| Backblaze B2 | S3-compatible document storage |
-| Upstash Redis | Serverless Redis for coordinator notes |
-| HuggingFace Inference API | all-MiniLM-L6-v2 embeddings (384 dimensions) |
-| Google Gemini | AI assistant (gemini-2.5-flash-lite) |
-| Resend | Email delivery with HTML templates |
+| AWS S3 | Document storage |
+| Redis Cloud | Redis for coordinator notes |
+| HuggingFace Inference API | Text embeddings (384 dimensions) |
+| Google Gemini | AI assistant |
 
 ---
 
@@ -138,7 +131,7 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 - Template variable substitution for personalized outreach
 
 ### Document Storage
-- Upload PDF, DOCX, TXT, and image files to Backblaze B2
+- Upload PDF, DOCX, TXT, and image files to AWS S3
 - Files namespaced by coordinator email for isolation
 - Streaming download and file listing
 
@@ -155,9 +148,27 @@ An intelligent platform that uses semantic AI matching and behavioral analytics 
 
 ---
 
-## System Architecture
+## Thought Process and Tradeoffs
 
-The platform follows a clean three-tier architecture. The Next.js frontend (hosted on Vercel) handles all UI rendering, authentication via Supabase Auth middleware, and data fetching through TanStack Query. Every data request flows through a centralized API client to the FastAPI backend running on AWS Lambda as a serverless function (no API Gateway, direct Function URL). The backend orchestrates seven route modules, each connecting to specific external services: Supabase PostgreSQL with pgvector for all relational data and vector similarity searches, HuggingFace Inference API for generating 384-dimensional text embeddings, Google Gemini for the AI chatbot, Backblaze B2 for document storage, Upstash Redis for coordinator notes, and Resend for email delivery. The frontend never queries the database directly; all data flows through the Lambda backend, while authentication is handled client-side through Supabase Auth.
+Every tech choice in this project came from weighing real alternatives. Here is why I picked what I picked.
+
+**Why FastAPI over Django or Flask?**
+Django felt too heavy for a pure API backend with no server-rendered templates. Flask was an option, but FastAPI gives you automatic request validation through Pydantic, auto-generated Swagger docs at `/docs`, and async support out of the box. For a project that is essentially a REST API connecting to external services, FastAPI was the perfect fit. Express.js was also on the table, but I wanted Python for the AI/ML ecosystem.
+
+**Why AWS Lambda over EC2, Railway, or Render?**
+I did not want to manage servers or pay for idle compute. Railway and Render are great for always-on apps, but Lambda scales to zero when nobody is using it, which is ideal for a demo project. The tradeoff is cold starts, but with a 16MB ZIP and Python 3.11, cold starts stay under 3 seconds. I also skipped API Gateway entirely and used Lambda Function URLs directly, which cuts latency and cost.
+
+**Why HuggingFace Inference API over local models or OpenAI embeddings?**
+I considered running sentence-transformers locally, but that adds an 80MB+ model download and makes Lambda packaging painful. OpenAI embeddings (text-embedding-ada-002) would work but cost money per request. HuggingFace Inference API gives free access to the same all-MiniLM-L6-v2 model with zero local dependencies. The tradeoff is rate limits on the free tier, but for a volunteer management app, the throughput is more than enough.
+
+**Why pgvector over Pinecone, Weaviate, or FAISS?**
+Pinecone and Weaviate are dedicated vector databases, but they add another service to manage and another bill to pay. FAISS is great for local search but does not persist data. pgvector lets me store vectors right next to my relational data in the same Supabase PostgreSQL database. One query can join volunteer metadata with vector similarity results. No separate vector store, no sync issues, no extra infrastructure.
+
+**Why Supabase over Firebase or raw PostgreSQL?**
+Firebase is NoSQL (Firestore), which is awkward for relational data like volunteers linked to activity logs. Raw PostgreSQL on RDS would work but requires managing connections, migrations, and auth separately. Supabase gives me PostgreSQL with pgvector, built-in JWT auth, row-level security, and a clean REST API, all managed. The auth integration alone saved me from building a whole authentication layer.
+
+**Why Vercel over Netlify or self-hosting?**
+Next.js is built by the Vercel team, so the deployment experience is seamless. Netlify works fine for static sites but Next.js App Router with middleware and SSR runs best on Vercel. Zero-config deployment from a GitHub push was the deciding factor.
 
 ---
 
@@ -168,7 +179,7 @@ The platform follows a clean three-tier architecture. The Next.js frontend (host
 - Python 3.11+
 - Node.js 18+
 - A Supabase project with pgvector enabled
-- API keys for: HuggingFace (optional), Google Gemini, Resend, Backblaze B2, Upstash Redis
+- API keys for: HuggingFace (optional), Google Gemini, Resend, AWS S3, Redis Cloud
 
 ### Backend Setup
 
@@ -263,24 +274,16 @@ Lambda configuration:
 | `SUPABASE_KEY` | Yes | Supabase anon/service key |
 | `HUGGINGFACE_API_KEY` | No | HuggingFace API key (optional, improves rate limits) |
 | `GEMINI_API_KEY` | Yes | Google Gemini API key |
-| `S3_ACCESS_KEY_ID` | Yes | Backblaze B2 application key ID |
-| `S3_SECRET_ACCESS_KEY` | Yes | Backblaze B2 application key |
-| `S3_REGION` | Yes | Backblaze B2 region (e.g., `us-east-005`) |
-| `AWS_S3_BUCKET` | Yes | B2 bucket name |
-| `AWS_ENDPOINT_URL` | Yes | B2 endpoint (e.g., `https://s3.us-east-005.backblazeb2.com`) |
-| `REDIS_HOST` | Yes | Upstash Redis host |
-| `REDIS_PORT` | Yes | Upstash Redis port (default: `6379`) |
-| `REDIS_PASSWORD` | Yes | Upstash Redis password |
+| `S3_ACCESS_KEY_ID` | Yes | AWS S3 access key ID |
+| `S3_SECRET_ACCESS_KEY` | Yes | AWS S3 secret access key |
+| `S3_REGION` | Yes | S3 bucket region |
+| `AWS_S3_BUCKET` | Yes | S3 bucket name |
+| `AWS_ENDPOINT_URL` | No | Custom S3 endpoint (for S3-compatible services) |
+| `REDIS_HOST` | Yes | Redis Cloud host |
+| `REDIS_PORT` | Yes | Redis Cloud port (default: `6379`) |
+| `REDIS_PASSWORD` | Yes | Redis Cloud password |
 | `RESEND_API_KEY` | Yes | Resend email API key |
 | `ENVIRONMENT` | No | `development` or `production` (default: `development`) |
-
-### Frontend (.env)
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_API_URL` | Yes | Backend API URL (Lambda Function URL) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
 
 ---
 
@@ -335,7 +338,7 @@ Lambda configuration:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/documents/upload` | Upload file to Backblaze B2 |
+| POST | `/documents/upload` | Upload file to AWS S3 |
 | GET | `/documents/list` | List coordinator documents |
 | GET | `/documents/download/{key}` | Download file (streaming) |
 | DELETE | `/documents/{key}` | Delete file |
@@ -408,27 +411,6 @@ Lambda configuration:
 | activity_type | TEXT | signup / task_completion / check_in / custom |
 | points_awarded | INTEGER | Points for this activity |
 | created_at | TIMESTAMPTZ | Log timestamp |
-
-### View
-
-**volunteer_retention_status**
-
-Computed view that calculates real-time health for each volunteer:
-
-```sql
-health = engagement_score - (days_since_last_active * 2)
-
-Status:
-  health > 70  => 'Healthy'
-  health 40-70 => 'Warning'
-  health < 40  => 'At-Risk'
-```
-
-### RPC Function
-
-**match_volunteers(query_embedding, match_threshold, match_count)**
-
-pgvector cosine similarity search that ranks volunteers against a task embedding vector. Returns volunteer ID, name, bio, and similarity score.
 
 ---
 
